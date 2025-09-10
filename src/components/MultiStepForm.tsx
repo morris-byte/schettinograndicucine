@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
+// import { sendEmailToCommerciali } from '@/services/emailService';
 interface FormData {
   isRestaurateur: boolean | null;
   isInCampania: boolean | null;
@@ -117,6 +118,28 @@ const MultiStepForm = () => {
       console.log('Response ok:', response.ok);
       
       if (response.ok) {
+        console.log('Dati inviati a Make con successo.');
+        
+        // Invia email ai commerciali tramite API
+        try {
+          const emailResponse = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (emailResponse.ok) {
+            console.log('Email inviata ai commerciali con successo');
+          } else {
+            console.warn('Errore nell\'invio email ai commerciali');
+          }
+        } catch (emailError) {
+          console.error('Errore nell\'invio email ai commerciali:', emailError);
+          // Non bloccare il flusso principale se l'email fallisce
+        }
+        
         toast({
           title: "Preventivo inviato!",
           description: "Ti contatteremo presto per discutere le tue esigenze.",
