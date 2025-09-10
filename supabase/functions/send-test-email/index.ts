@@ -64,74 +64,69 @@ const handler = async (req: Request): Promise<Response> => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Nuovo Lead - Schettino Grandi Cucine</title>
         </head>
-        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; margin-bottom: 20px;">
+        <body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; min-height: 100vh;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; margin-bottom: 20px;">
             
             <!-- Header with logo -->
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-              <img src="https://laxbglhrrcbrxpnpvcob.supabase.co/storage/v1/object/public/project-images/schettino-logo.png" alt="Schettino Grandi Cucine" style="height: 60px; margin-bottom: 15px;">
-              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">🎉 NUOVO LEAD RICEVUTO!</h1>
-              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Un nuovo cliente ha richiesto informazioni</p>
+            <div style="background-color: #16a34a; padding: 40px 30px; text-align: center;">
+              <img src="https://laxbglhrrcbrxpnpvcob.supabase.co/storage/v1/object/public/project-images/schettino-logo.png" alt="Schettino Grandi Cucine" style="height: 60px; margin-bottom: 20px;">
+              <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.025em;">Nuovo Lead Ricevuto</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px; font-weight: 400;">Un cliente ha richiesto informazioni</p>
             </div>
             
             <!-- Content -->
-            <div style="padding: 40px 30px;">
+            <div style="padding: 32px 24px;">
               
               <!-- Lead info -->
-              <div style="background: #f8fafc; border-radius: 12px; padding: 25px; margin-bottom: 25px; border-left: 4px solid #667eea;">
-                <h2 style="color: #1e293b; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
-                  👤 Informazioni Cliente
-                </h2>
-                <div style="display: grid; gap: 15px;">
-                  <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                    <strong style="color: #475569;">Nome:</strong>
-                    <span style="color: #1e293b;">${leadData.firstName} ${leadData.lastName}</span>
+              <div style="margin-bottom: 24px;">
+                <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Informazioni Cliente</h2>
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+                  <div style="margin-bottom: 12px;">
+                    <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 80px;">Nome:</span>
+                    <span style="color: #111827; font-weight: 600;">${leadData.firstName} ${leadData.lastName}</span>
                   </div>
-                  <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                    <strong style="color: #475569;">📧 Email:</strong>
-                    <span style="color: #1e293b;">${leadData.email}</span>
+                  <div style="margin-bottom: 12px;">
+                    <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 80px;">Email:</span>
+                    <span style="color: #111827;">${leadData.email}</span>
                   </div>
-                  <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                    <strong style="color: #475569;">📱 Telefono:</strong>
-                    <span style="color: #1e293b; font-weight: 600;">${leadData.phoneNumber}</span>
+                  <div style="margin-bottom: 0;">
+                    <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 80px;">Telefono:</span>
+                    <span style="color: #111827; font-weight: 600;">${leadData.phoneNumber}</span>
                   </div>
                 </div>
               </div>
               
               <!-- Restaurant info -->
-              <div style="background: #f0f9ff; border-radius: 12px; padding: 25px; margin-bottom: 25px; border-left: 4px solid #0ea5e9;">
-                <h2 style="color: #1e293b; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
-                  🏪 Informazioni Ristorante
-                </h2>
-                <div style="display: grid; gap: 15px;">
-                  <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0f2fe;">
-                    <strong style="color: #475569;">Nome Ristorante:</strong>
-                    <span style="color: #1e293b;">${leadData.restaurantName}</span>
+              <div style="margin-bottom: 24px;">
+                <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Informazioni Ristorante</h2>
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+                  <div style="margin-bottom: 12px;">
+                    <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 120px;">Ristorante:</span>
+                    <span style="color: #111827; font-weight: 600;">${leadData.restaurantName}</span>
                   </div>
-                  <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0f2fe;">
-                    <strong style="color: #475569;">📍 Zona:</strong>
-                    <span style="color: #1e293b;">${leadData.restaurantZone}</span>
+                  <div style="margin-bottom: 12px;">
+                    <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 120px;">Zona:</span>
+                    <span style="color: #111827;">${leadData.restaurantZone}</span>
                   </div>
-                  <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0f2fe;">
-                    <strong style="color: #475569;">🔧 Attrezzatura:</strong>
-                    <span style="color: #1e293b;">${leadData.equipmentType}</span>
+                  <div style="margin-bottom: 0;">
+                    <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 120px;">Attrezzatura:</span>
+                    <span style="color: #111827;">${leadData.equipmentType}</span>
                   </div>
                 </div>
               </div>
               
-              <!-- CTA -->
-              <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 25px; text-align: center; color: white;">
-                <h3 style="margin: 0 0 10px 0; font-size: 18px;">⏰ AZIONE RICHIESTA</h3>
-                <p style="margin: 0 0 15px 0; font-size: 16px;">Chiamare il prima possibile per seguire questo lead!</p>
-                <p style="margin: 0; font-size: 14px; opacity: 0.9;">📅 Ricevuto il: ${leadData.timestamp || new Date().toLocaleString('it-IT')}</p>
+              <!-- Call to action -->
+              <div style="background-color: #16a34a; border-radius: 8px; padding: 20px; text-align: center;">
+                <p style="color: white; margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">Chiamare il prima possibile!</p>
+                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px;">Ricevuto il: ${leadData.timestamp || new Date().toLocaleString('it-IT')}</p>
               </div>
               
             </div>
             
             <!-- Footer -->
-            <div style="background: #f8fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
-              <p style="margin: 0; color: #64748b; font-size: 14px;">
-                📧 Email automatica da Schettino Grandi Cucine
+            <div style="background: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                Email automatica da Schettino Grandi Cucine
               </p>
             </div>
             
@@ -143,7 +138,7 @@ const handler = async (req: Request): Promise<Response> => {
       const emailResponse = await resend.emails.send({
         from: "Schettino Grandi Cucine <onboarding@resend.dev>",
         to: ["vincenzopetronebiz@gmail.com", "jagermorris@gmail.com"],
-        subject: "🎉 NUOVO LEAD - " + leadData.firstName + " " + leadData.lastName,
+        subject: "Nuovo Lead - " + leadData.firstName + " " + leadData.lastName,
         html: emailHtml,
       });
 
