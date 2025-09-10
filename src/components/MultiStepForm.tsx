@@ -9,6 +9,7 @@ import schettinoLogo from '@/assets/schettino-logo.png';
 interface FormData {
   isRestaurateur: boolean | null;
   isInCampania: boolean | null;
+  restaurantZone: string;
   restaurantName: string;
   equipmentType: string;
   firstName: string;
@@ -22,6 +23,7 @@ const MultiStepForm = () => {
   const [formData, setFormData] = useState<FormData>({
     isRestaurateur: null,
     isInCampania: null,
+    restaurantZone: '',
     restaurantName: '',
     equipmentType: '',
     firstName: '',
@@ -219,6 +221,28 @@ const MultiStepForm = () => {
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
+                In che zona si trova il tuo ristorante?
+              </h2>
+              <p className="text-text-secondary text-sm">
+                Provincia o città principale in Campania
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Input placeholder="Es. Napoli, Salerno, Caserta..." value={formData.restaurantZone} onChange={e => handleInputChange('restaurantZone', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+              <Button onClick={handleNext} disabled={!formData.restaurantZone.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+                Continua
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+            <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Torna indietro
+            </Button>
+          </div>;
+      case 4:
+        return <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-text-primary mb-2">
                 Qual è il nome del tuo ristorante?
               </h2>
               <p className="text-text-secondary text-sm">
@@ -237,7 +261,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 4:
+      case 5:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
@@ -259,7 +283,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 5:
+      case 6:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
@@ -284,7 +308,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 6:
+      case 7:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
@@ -312,7 +336,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 7:
+      case 8:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
@@ -358,7 +382,7 @@ const MultiStepForm = () => {
               Attrezzature professionali per ristoranti in Campania
             </p>
             <div className="flex justify-center space-x-2 mt-4">
-              {[1, 2, 3, 4, 5, 6, 7].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
             </div>
           </CardHeader>
           <CardContent>
