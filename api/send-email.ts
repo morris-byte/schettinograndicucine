@@ -101,7 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `;
 
     const result = await resend.emails.send({
-      from: 'noreply@resend.dev',
+      from: 'Grandi Cucine <onboarding@resend.dev>',
       to: COMMERCIALI_EMAILS,
       subject: `Nuovo Lead - ${leadData.restaurantName || 'Cliente Potenziale'}`,
       html: emailContent,

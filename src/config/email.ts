@@ -7,5 +7,5 @@ export const COMMERCIALI_EMAILS = [
 // Configurazione Resend
 export const RESEND_CONFIG = {
   apiKey: import.meta.env.VITE_RESEND_API_KEY || 're_XbAxcgBZ_v8dtrGz2R2XBmGxBnrbBsMkv',
-  fromEmail: 'noreply@resend.dev', // Usa il dominio di Resend
+  fromEmail: 'Grandi Cucine <onboarding@resend.dev>', // Usa il dominio verificato di Resend
 };
