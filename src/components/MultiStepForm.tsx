@@ -387,11 +387,6 @@ const MultiStepForm = () => {
       <div className="w-full max-w-4xl">
         {/* Company Info Section */}
         <div className="text-center mb-8">
-          <img 
-            src={schettinoLogo} 
-            alt="Schettino Grandi Cucine" 
-            className="h-16 mx-auto mb-4"
-          />
           <p className="text-text-primary text-lg mb-4">
             Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
           </p>
@@ -426,6 +421,11 @@ const MultiStepForm = () => {
         {/* Form Card */}
         <Card className="w-full max-w-md mx-auto bg-form-background shadow-[var(--shadow-form)]">
           <CardHeader className="text-center">
+            <img 
+              src={schettinoLogo} 
+              alt="Schettino Grandi Cucine" 
+              className="h-12 mx-auto mb-3"
+            />
             <CardTitle className="text-xl font-bold text-primary mb-2">
               Richiedi un Preventivo
             </CardTitle>
