@@ -10,7 +10,8 @@ interface FormData {
   isInCampania: boolean | null;
   restaurantName: string;
   equipmentType: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   phoneNumber: string;
   email: string;
 }
@@ -21,7 +22,8 @@ const MultiStepForm = () => {
     isInCampania: null,
     restaurantName: '',
     equipmentType: '',
-    fullName: '',
+    firstName: '',
+    lastName: '',
     phoneNumber: '',
     email: ''
   });
@@ -186,15 +188,16 @@ const MultiStepForm = () => {
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
-                Nome e Cognome
+                Dati Personali
               </h2>
               <p className="text-text-secondary text-sm">
                 Come possiamo chiamarti?
               </p>
             </div>
             <div className="space-y-4">
-              <Input placeholder="Il tuo nome e cognome" value={formData.fullName} onChange={e => handleInputChange('fullName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
-              <Button onClick={handleNext} disabled={!formData.fullName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Input placeholder="Nome" value={formData.firstName} onChange={e => handleInputChange('firstName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+              <Input placeholder="Cognome" value={formData.lastName} onChange={e => handleInputChange('lastName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+              <Button onClick={handleNext} disabled={!formData.firstName.trim() || !formData.lastName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
