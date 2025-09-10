@@ -116,12 +116,17 @@ const MultiStepForm = () => {
       });
 
       if (emailResponse.ok) {
+        const result = await emailResponse.json();
+        console.log('Risposta API email:', result);
+        
         toast({
           title: "Email di test inviata!",
-          description: "Controlla le email dei commerciali.",
+          description: `Controlla le email dei commerciali. ID: ${result.emailId || 'N/A'}`,
         });
       } else {
-        throw new Error('Errore nell\'invio email di test');
+        const errorResult = await emailResponse.json();
+        console.error('Errore API email:', errorResult);
+        throw new Error(`Errore nell'invio email di test: ${errorResult.error || 'Errore sconosciuto'}`);
       }
     } catch (error) {
       console.error('Errore email di test:', error);

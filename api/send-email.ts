@@ -108,11 +108,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     console.log('Email inviata ai commerciali:', result);
+    console.log('API Key utilizzata:', process.env.RESEND_API_KEY ? 'Presente' : 'Mancante');
+    console.log('Email destinatari:', COMMERCIALI_EMAILS);
+
+    if (result.error) {
+      console.error('Errore Resend:', result.error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Errore Resend',
+        details: result.error
+      });
+    }
 
     return res.status(200).json({ 
       success: true, 
       message: 'Email inviata con successo',
-      emailId: result.data?.id 
+      emailId: result.data?.id,
+      debug: {
+        apiKeyPresent: !!process.env.RESEND_API_KEY,
+        recipients: COMMERCIALI_EMAILS
+      }
     });
 
   } catch (error) {
