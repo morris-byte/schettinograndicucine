@@ -158,7 +158,7 @@ const MultiStepForm = () => {
         const emailResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-            'Authorization': 'Bearer re_cFhg7cjK_PASgmJRmzsPCYkaBHXjAWvhN',
+            'Authorization': 'Bearer re_UJKSyude_Hvdbh5NTAoyGEHNCRNqiPgiy',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(emailPayload),
