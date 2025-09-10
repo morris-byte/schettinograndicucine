@@ -257,8 +257,8 @@ const MultiStepForm = () => {
 
         {/* Form Card */}
         <Card className="w-full max-w-md mx-auto bg-form-background shadow-[var(--shadow-form)] mb-8">
-          <CardHeader className="text-center bg-[#1A1A1A] rounded-t-lg -m-6 mb-6 p-6">
-            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto mb-3" />
+          <CardHeader className="text-center bg-[#1A1A1A] rounded-t-lg mb-6 p-6">
+            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto" />
             <CardTitle className="text-xl font-bold text-white mb-2">
               Richiedi un Preventivo
             </CardTitle>
