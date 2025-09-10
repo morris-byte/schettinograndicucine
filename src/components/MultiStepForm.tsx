@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
-// import { sendEmailToCommerciali } from '@/services/emailService';
+import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
   isInCampania: boolean | null;
@@ -82,80 +82,14 @@ const MultiStepForm = () => {
   };
   const handleTestEmail = async () => {
     try {
-      const testPayload = {
-        firstName: 'Test',
-        lastName: 'User',
-        email: 'test@example.com',
-        phoneNumber: '+39 123 456 7890',
-        restaurantName: 'Ristorante Test',
-        restaurantZone: 'Napoli',
-        equipmentType: 'Cucina Professionale',
-        timestamp: new Date().toISOString(),
-        source: 'Test Email'
-      };
-
-      // In locale, simula l'invio email
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('Modalità locale: Simulazione invio email');
-        console.log('Dati email di test:', testPayload);
-        
-        toast({
-          title: "Modalità Locale",
-          description: "In locale, l'email viene simulata. Controlla la console per i dettagli.",
-        });
-        return;
-      }
-
-      // In produzione, usa Resend direttamente
-      console.log('Inviando email di test con Resend...');
-      console.log('Payload:', testPayload);
+      console.log('Inviando email di test con SendGrid...');
       
-      const emailResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer re_XbAxcgBZ_v8dtrGz2R2XBmGxBnrbBsMkv`,
-        },
-        body: JSON.stringify({
-          from: 'Grandi Cucine <onboarding@resend.dev>',
-          to: ['jagermorris@gmail.com', 'vincenzopetronebiz@gmail.com'],
-          subject: `Nuovo Lead - ${testPayload.restaurantName}`,
-          html: `
-            <h2>🎯 Email di Test</h2>
-            <p>Questa è una email di test per verificare il funzionamento del sistema.</p>
-            <h3>Dati di Test:</h3>
-            <ul>
-              <li><strong>Nome:</strong> ${testPayload.firstName} ${testPayload.lastName}</li>
-              <li><strong>Email:</strong> ${testPayload.email}</li>
-              <li><strong>Telefono:</strong> ${testPayload.phoneNumber}</li>
-              <li><strong>Ristorante:</strong> ${testPayload.restaurantName}</li>
-              <li><strong>Zona:</strong> ${testPayload.restaurantZone}</li>
-              <li><strong>Attrezzatura:</strong> ${testPayload.equipmentType}</li>
-              <li><strong>Data:</strong> ${new Date(testPayload.timestamp).toLocaleString('it-IT')}</li>
-            </ul>
-            <p><em>Questa email è stata inviata automaticamente dal sistema di test.</em></p>
-          `,
-        }),
+      const result = await sendTestEmail();
+      
+      toast({
+        title: "Email di test inviata!",
+        description: "Controlla le email dei commerciali.",
       });
-
-      console.log('Response status:', emailResponse.status);
-      console.log('Response ok:', emailResponse.ok);
-
-      if (emailResponse.ok) {
-        const result = await emailResponse.json();
-        console.log('Risposta Resend:', result);
-        
-        toast({
-          title: "Email di test inviata!",
-          description: `Controlla le email dei commerciali. ID: ${result.id || 'N/A'}`,
-        });
-      } else {
-        const errorResult = await emailResponse.json();
-        console.error('Errore Resend - Status:', emailResponse.status);
-        console.error('Errore Resend - Response:', errorResult);
-        console.error('Errore Resend - Headers:', emailResponse.headers);
-        throw new Error(`Errore nell'invio email di test: ${errorResult.message || 'Errore sconosciuto'}`);
-      }
     } catch (error) {
       console.error('Errore email di test:', error);
       toast({
@@ -206,111 +140,10 @@ const MultiStepForm = () => {
       if (response.ok) {
         console.log('Dati inviati a Make con successo.');
         
-        // Invia email ai commerciali tramite Resend
+        // Invia email ai commerciali tramite SendGrid
         try {
-          const emailResponse = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer re_XbAxcgBZ_v8dtrGz2R2XBmGxBnrbBsMkv`,
-            },
-            body: JSON.stringify({
-              from: 'Grandi Cucine <onboarding@resend.dev>',
-              to: ['jagermorris@gmail.com', 'vincenzopetronebiz@gmail.com'],
-              subject: `Nuovo Lead - ${payload.restaurantName || 'Cliente Potenziale'}`,
-              html: `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <meta charset="utf-8">
-                  <title>Nuovo Lead - Schettino Grandi Cucine</title>
-                  <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                    .lead-info { background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; }
-                    .field { margin-bottom: 15px; }
-                    .label { font-weight: bold; color: #495057; }
-                    .value { color: #212529; }
-                    .highlight { background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 15px 0; }
-                  </style>
-                </head>
-                <body>
-                  <div class="container">
-                    <div class="header">
-                      <h2>🎯 Nuovo Lead Ricevuto</h2>
-                      <p>Un nuovo potenziale cliente ha compilato il form di contatto.</p>
-                    </div>
-                    
-                    <div class="lead-info">
-                      <h3>Informazioni Cliente</h3>
-                      
-                      <div class="field">
-                        <span class="label">Nome:</span>
-                        <span class="value">${payload.firstName} ${payload.lastName}</span>
-                      </div>
-                      
-                      <div class="field">
-                        <span class="label">Email:</span>
-                        <span class="value">${payload.email}</span>
-                      </div>
-                      
-                      <div class="field">
-                        <span class="label">Telefono:</span>
-                        <span class="value">${payload.phoneNumber}</span>
-                      </div>
-                      
-                      <div class="highlight">
-                        <h4>Informazioni Ristorante</h4>
-                        <div class="field">
-                          <span class="label">Nome Ristorante:</span>
-                          <span class="value">${payload.restaurantName || 'Non specificato'}</span>
-                        </div>
-                        
-                        <div class="field">
-                          <span class="label">Zona:</span>
-                          <span class="value">${payload.restaurantZone || 'Non specificata'}</span>
-                        </div>
-                        
-                        <div class="field">
-                          <span class="label">Tipo Attrezzatura:</span>
-                          <span class="value">${payload.equipmentType || 'Non specificato'}</span>
-                        </div>
-                      </div>
-                      
-                      <div class="field">
-                        <span class="label">Data/Ora:</span>
-                        <span class="value">${new Date(payload.timestamp).toLocaleString('it-IT')}</span>
-                      </div>
-                      
-                      <div class="field">
-                        <span class="label">Fonte:</span>
-                        <span class="value">${payload.source}</span>
-                      </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
-                      <p><strong>Prossimi passi:</strong></p>
-                      <ul>
-                        <li>Contattare il cliente entro 24 ore</li>
-                        <li>Verificare le esigenze specifiche</li>
-                        <li>Programmare una visita o chiamata di approfondimento</li>
-                      </ul>
-                    </div>
-                  </div>
-                </body>
-                </html>
-              `,
-            }),
-          });
-
-          if (emailResponse.ok) {
-            const result = await emailResponse.json();
-            console.log('Email inviata ai commerciali con successo:', result);
-          } else {
-            const errorResult = await emailResponse.json();
-            console.warn('Errore nell\'invio email ai commerciali:', errorResult);
-          }
+          const result = await sendEmailToCommerciali(payload);
+          console.log('Email inviata ai commerciali con successo:', result);
         } catch (emailError) {
           console.error('Errore nell\'invio email ai commerciali:', emailError);
           // Non bloccare il flusso principale se l'email fallisce
