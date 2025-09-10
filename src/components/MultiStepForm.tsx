@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star } from 'lucide-react';
 import schettinoLogo from '@/assets/schettino-logo.png';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -262,9 +262,47 @@ const MultiStepForm = () => {
             <CardTitle className="text-xl font-bold text-primary mb-2">
               Richiedi un Preventivo
             </CardTitle>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-text-secondary mb-4">
               Attrezzature professionali per ristoranti in Campania
             </p>
+            
+            {/* Reviews Marquee */}
+            <div className="relative overflow-hidden bg-secondary/10 rounded-lg p-2 mb-4">
+              <div className="flex animate-[scroll-left_20s_linear_infinite] space-x-8">
+                <div className="flex items-center space-x-2 text-xs whitespace-nowrap">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-text-primary font-medium">"Attrezzature di qualità, assistenza impeccabile" - Marco R.</span>
+                </div>
+                <div className="flex items-center space-x-2 text-xs whitespace-nowrap">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-text-primary font-medium">"Dal 1980 ci affidiamo a Schettino per la nostra pizzeria" - Giuseppe M.</span>
+                </div>
+                <div className="flex items-center space-x-2 text-xs whitespace-nowrap">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-text-primary font-medium">"Professionalità e competenza, consigliatissimi!" - Anna P.</span>
+                </div>
+                <div className="flex items-center space-x-2 text-xs whitespace-nowrap">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-text-primary font-medium">"Installazione perfetta, zero problemi da 5 anni" - Roberto C.</span>
+                </div>
+              </div>
+            </div>
             <div className="flex justify-center space-x-2 mt-4">
               {[1, 2, 3, 4, 5, 6, 7].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-primary' : 'bg-border'}`} />)}
             </div>
