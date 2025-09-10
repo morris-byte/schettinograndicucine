@@ -54,6 +54,18 @@ const MultiStepForm = () => {
     setCurrentStep(prev => prev - 1);
   };
   const handleSubmit = () => {
+    // Validate phone number format
+    const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      return; // Invalid phone number
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return; // Invalid email
+    }
+    
     // Here you would typically send the data to your backend
     console.log('Form submitted:', formData);
     setThankYouType('success');
@@ -220,8 +232,14 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <Input placeholder="Il tuo numero di telefono" value={formData.phoneNumber} onChange={e => handleInputChange('phoneNumber', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" type="tel" />
-              <Button onClick={handleNext} disabled={!formData.phoneNumber.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Input 
+                placeholder="Il tuo numero di telefono (es. +39 123 456 7890)" 
+                value={formData.phoneNumber} 
+                onChange={e => handleInputChange('phoneNumber', e.target.value)} 
+                className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
+                type="tel" 
+              />
+              <Button onClick={handleNext} disabled={!formData.phoneNumber.trim() || !/^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/.test(formData.phoneNumber)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
@@ -242,8 +260,14 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <Input placeholder="La tua email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" type="email" />
-              <Button onClick={handleSubmit} disabled={!formData.email.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Input 
+                placeholder="La tua email (es. nome@esempio.it)" 
+                value={formData.email} 
+                onChange={e => handleInputChange('email', e.target.value)} 
+                className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
+                type="email" 
+              />
+              <Button onClick={handleSubmit} disabled={!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Invia Richiesta
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
