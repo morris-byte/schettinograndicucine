@@ -254,8 +254,28 @@ const MultiStepForm = () => {
   };
   return <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
+
+        {/* Form Card */}
+        <Card className="w-full max-w-md mx-auto bg-form-background shadow-[var(--shadow-form)] mb-8">
+          <CardHeader className="text-center">
+            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto mb-3" />
+            <CardTitle className="text-xl font-bold text-primary mb-2">
+              Richiedi un Preventivo
+            </CardTitle>
+            <p className="text-sm text-text-secondary">
+              Attrezzature professionali per ristoranti in Campania
+            </p>
+            <div className="flex justify-center space-x-2 mt-4">
+              {[1, 2, 3, 4, 5, 6, 7].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-primary' : 'bg-border'}`} />)}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {renderStep()}
+          </CardContent>
+        </Card>
+
         {/* Company Info Section */}
-        <div className="text-center mb-8">
+        <div className="text-center">
           <p className="text-white mb-4 text-3xl font-semibold">
             Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
           </p>
@@ -286,25 +306,6 @@ const MultiStepForm = () => {
             </div>
           </div>
         </div>
-
-        {/* Form Card */}
-        <Card className="w-full max-w-md mx-auto bg-form-background shadow-[var(--shadow-form)]">
-          <CardHeader className="text-center">
-            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto mb-3" />
-            <CardTitle className="text-xl font-bold text-primary mb-2">
-              Richiedi un Preventivo
-            </CardTitle>
-            <p className="text-sm text-text-secondary">
-              Attrezzature professionali per ristoranti in Campania
-            </p>
-            <div className="flex justify-center space-x-2 mt-4">
-              {[1, 2, 3, 4, 5, 6, 7].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-primary' : 'bg-border'}`} />)}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {renderStep()}
-          </CardContent>
-        </Card>
       </div>
     </div>;
 };
