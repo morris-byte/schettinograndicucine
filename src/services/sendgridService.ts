@@ -29,7 +29,7 @@ export const sendEmailToCommerciali = async (leadData: any) => {
         ],
         from: {
           email: 'noreply@grandicucine.com',
-          name: 'Grandi Cucine'
+          name: 'Schettino Grandi Cucine'
         },
         content: [
           {
