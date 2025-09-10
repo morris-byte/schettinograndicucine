@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
+import confetti from 'canvas-confetti';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -140,6 +141,13 @@ const MultiStepForm = () => {
           console.log('Errore invio email notifica:', emailError);
         }
         
+        // Fire confetti animation
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+        
         toast({
           title: "Preventivo inviato!",
           description: "Ti contatteremo presto per discutere le tue esigenze.",
@@ -173,6 +181,13 @@ const MultiStepForm = () => {
     return <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-form-background shadow-[var(--shadow-form)]">
           <CardHeader className="text-center">
+            <div className="mb-4">
+              <img 
+                src={schettinoLogo} 
+                alt="Schettino Grandi Cucine" 
+                className="h-16 mx-auto mb-4"
+              />
+            </div>
             <CardTitle className="text-2xl font-bold text-primary mb-2">
               Schettino Grandi Cucine
             </CardTitle>
@@ -185,9 +200,19 @@ const MultiStepForm = () => {
               <div className="w-16 h-16 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center">
                 <ChevronRight className="w-8 h-8 text-primary-foreground" />
               </div>
-              <p className="text-text-primary leading-relaxed">
+              <p className="text-text-primary leading-relaxed mb-6">
                 {getThankYouMessage()}
               </p>
+              {thankYouType === 'success' && (
+                <Button 
+                  onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
+                  variant="outline"
+                  className="w-full mb-4 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-[var(--transition-smooth)]"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Nel frattempo che vieni contattato, scopri di più visitando il nostro sito
+                </Button>
+              )}
             </div>
             {thankYouType === 'success' && <Button onClick={() => window.location.reload()} className="bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]">
                 Invia un altro modulo
