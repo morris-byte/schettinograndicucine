@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -16,6 +17,7 @@ interface FormData {
   email: string;
 }
 const MultiStepForm = () => {
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     isRestaurateur: null,
@@ -46,6 +48,28 @@ const MultiStepForm = () => {
       ...prev,
       [field]: value
     }));
+    
+    // Validate phone number format on change
+    if (field === 'phoneNumber' && value.length > 3) {
+      const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
+      if (!phoneRegex.test(value)) {
+        toast({
+          description: "Formato telefono non valido. Usa +39 123 456 7890 o 123 456 7890",
+          duration: 2000,
+        });
+      }
+    }
+    
+    // Validate email format on change
+    if (field === 'email' && value.includes('@')) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        toast({
+          description: "Formato email non valido. Usa nome@esempio.it",
+          duration: 2000,
+        });
+      }
+    }
   };
   const handleNext = () => {
     setCurrentStep(prev => prev + 1);
