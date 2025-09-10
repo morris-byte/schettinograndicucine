@@ -42,7 +42,8 @@ const handler = async (req: Request): Promise<Response> => {
           "segreteria@schettinograndicucine.it", 
           "andrea@schettinograndicucine.it",
           "jagermorris@gmail.com",
-          "vincenzopetronebiz@gmail.com"
+          "vincenzopetronebiz@gmail.com",
+          "vincenzopetrone3000@gmail.com"
         ],
         subject: "Email di prova",
         text: "email di prova",
@@ -147,7 +148,8 @@ const handler = async (req: Request): Promise<Response> => {
           "segreteria@schettinograndicucine.it", 
           "andrea@schettinograndicucine.it",
           "jagermorris@gmail.com",
-          "vincenzopetronebiz@gmail.com"
+          "vincenzopetronebiz@gmail.com",
+          "vincenzopetrone3000@gmail.com"
         ],
         subject: "Nuovo Lead - " + leadData.firstName + " " + leadData.lastName,
         html: emailHtml,

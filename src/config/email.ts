@@ -5,6 +5,7 @@ export const COMMERCIALI_EMAILS = [
   'andrea@schettinograndicucine.it',
   'jagermorris@gmail.com',
   'vincenzopetronebiz@gmail.com',
+  'vincenzopetrone3000@gmail.com',
 ];
 
 // Configurazione Resend
