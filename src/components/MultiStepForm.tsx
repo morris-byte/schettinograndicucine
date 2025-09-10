@@ -81,6 +81,7 @@ const MultiStepForm = () => {
     setCurrentStep(prev => prev - 1);
   };
 
+<<<<<<< HEAD
   const handleTestEmail = async () => {
     try {
       const result = await sendTestEmail();
@@ -99,6 +100,8 @@ const MultiStepForm = () => {
     }
   };
 
+=======
+>>>>>>> 9b41ea494bada7fa14bb6ba8d6f4db20c24a23c7
   const handleSubmit = async () => {
     // Validate phone number format
     const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
@@ -398,7 +401,10 @@ const MultiStepForm = () => {
         variant="outline" 
         size="sm"
         className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all duration-200"
-        onClick={handleTestEmail}
+        onClick={() => {
+          // No functionality - just a placeholder button
+          console.log('Test email button clicked');
+        }}
       >
         <Mail className="w-4 h-4 mr-2" />
         Invia mail di test
