@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
@@ -374,6 +374,20 @@ const MultiStepForm = () => {
     }
   };
   return <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
+      
+      {/* Test Email Button - Top Right */}
+      <Button 
+        variant="outline" 
+        size="sm"
+        className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all duration-200"
+        onClick={() => {
+          // No functionality - just a placeholder button
+          console.log('Test email button clicked');
+        }}
+      >
+        <Mail className="w-4 h-4 mr-2" />
+        Invia mail di test
+      </Button>
       
       <div className="w-full max-w-4xl">
 
