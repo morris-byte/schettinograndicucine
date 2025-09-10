@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
-// import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
+import { sendTestEmail } from '../services/resendService';
 interface FormData {
   isRestaurateur: boolean | null;
   isInCampania: boolean | null;
@@ -79,6 +79,23 @@ const MultiStepForm = () => {
   };
   const handleBack = () => {
     setCurrentStep(prev => prev - 1);
+  };
+
+  const handleTestEmail = async () => {
+    try {
+      await sendTestEmail();
+      toast({
+        title: "Email di prova inviata!",
+        description: "L'email di test è stata inviata con successo a vincenzopetronebiz@gmail.com",
+      });
+    } catch (error) {
+      console.error('Errore invio email di test:', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nell'invio dell'email di test.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSubmit = async () => {
@@ -380,10 +397,7 @@ const MultiStepForm = () => {
         variant="outline" 
         size="sm"
         className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all duration-200"
-        onClick={() => {
-          // No functionality - just a placeholder button
-          console.log('Test email button clicked');
-        }}
+        onClick={handleTestEmail}
       >
         <Mail className="w-4 h-4 mr-2" />
         Invia mail di test
