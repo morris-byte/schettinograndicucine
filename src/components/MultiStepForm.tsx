@@ -393,42 +393,6 @@ const MultiStepForm = () => {
   };
   return <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
       
-      {/* Test Email Button - Top Right */}
-      <Button 
-        variant="outline" 
-        size="sm"
-        className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all duration-200"
-        onClick={async () => {
-          try {
-            console.log('Sending test email...');
-            const response = await fetch('https://laxbglhrrcbrxpnpvcob.supabase.co/functions/v1/send-test-email', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            });
-            
-            if (response.ok) {
-              toast({
-                title: "Email di test inviata!",
-                description: "Email inviata a vincenzopetronebiz@gmail.com",
-              });
-            } else {
-              throw new Error('Errore nell\'invio');
-            }
-          } catch (error) {
-            console.error('Errore invio email test:', error);
-            toast({
-              title: "Errore",
-              description: "Si è verificato un errore nell'invio dell'email di test",
-              variant: "destructive",
-            });
-          }
-        }}
-      >
-        <Mail className="w-4 h-4 mr-2" />
-        Invia mail di test
-      </Button>
       
       <div className="w-full max-w-4xl">
 

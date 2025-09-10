@@ -67,9 +67,8 @@ const handler = async (req: Request): Promise<Response> => {
         <body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; min-height: 100vh;">
           <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; margin-bottom: 20px;">
             
-            <!-- Header with logo -->
+            <!-- Header -->
             <div style="background-color: #16a34a; padding: 40px 30px; text-align: center;">
-              <img src="https://laxbglhrrcbrxpnpvcob.supabase.co/storage/v1/object/public/project-images/schettino-logo.png" alt="Schettino Grandi Cucine" style="height: 60px; margin-bottom: 20px;">
               <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.025em;">Nuovo Lead Ricevuto</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px; font-weight: 400;">Un cliente ha richiesto informazioni</p>
             </div>
