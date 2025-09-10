@@ -121,6 +121,24 @@ const MultiStepForm = () => {
       if (response.ok) {
         console.log('Dati inviati a Make con successo.');
         
+        // Send email notification to commerciali
+        try {
+          const emailResponse = await fetch('https://laxbglhrrcbrxpnpvcob.supabase.co/functions/v1/send-test-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+          
+          if (emailResponse.ok) {
+            console.log('Email di notifica inviata con successo');
+          } else {
+            console.log('Errore invio email notifica, ma form completato comunque');
+          }
+        } catch (emailError) {
+          console.log('Errore invio email notifica:', emailError);
+        }
         
         toast({
           title: "Preventivo inviato!",
