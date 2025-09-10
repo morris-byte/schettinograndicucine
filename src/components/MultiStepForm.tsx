@@ -91,8 +91,8 @@ const MultiStepForm = () => {
     }
     
     try {
-      // Replace this URL with your Make webhook URL
-      const makeWebhookUrl = "https://hook.eu1.make.com/YOUR_WEBHOOK_ID_HERE";
+      // Your Make webhook URL
+      const makeWebhookUrl = "https://hook.eu2.make.com/jog4x5m8xjw5gdpemv4ocgc4wwlx2dcm";
       
       const response = await fetch(makeWebhookUrl, {
         method: 'POST',
