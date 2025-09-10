@@ -25,7 +25,7 @@
 
 3. **Configura Variabili Ambiente**:
    - Nel dashboard Vercel, vai su Settings → Environment Variables
-   - Aggiungi: `RESEND_API_KEY` = `re_UJKSyude_Hvdbh5NTAoyGEHNCRNqiPgiy`
+   - Aggiungi: `RESEND_API_KEY` = `re_XbAxcgBZ_v8dtrGz2R2XBmGxBnrbBsMkv`
 
 ### Opzione 2: Deploy da CLI
 
@@ -42,7 +42,7 @@
 3. **Configura Variabili**:
    ```bash
    vercel env add RESEND_API_KEY
-   # Inserisci: re_UJKSyude_Hvdbh5NTAoyGEHNCRNqiPgiy
+   # Inserisci: re_XbAxcgBZ_v8dtrGz2R2XBmGxBnrbBsMkv
    ```
 
 ## ✅ Verifica Deploy
