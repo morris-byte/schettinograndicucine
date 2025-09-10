@@ -107,6 +107,9 @@ const MultiStepForm = () => {
       }
 
       // In produzione, usa Resend direttamente
+      console.log('Inviando email di test con Resend...');
+      console.log('Payload:', testPayload);
+      
       const emailResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -135,6 +138,9 @@ const MultiStepForm = () => {
         }),
       });
 
+      console.log('Response status:', emailResponse.status);
+      console.log('Response ok:', emailResponse.ok);
+
       if (emailResponse.ok) {
         const result = await emailResponse.json();
         console.log('Risposta Resend:', result);
@@ -145,7 +151,9 @@ const MultiStepForm = () => {
         });
       } else {
         const errorResult = await emailResponse.json();
-        console.error('Errore Resend:', errorResult);
+        console.error('Errore Resend - Status:', emailResponse.status);
+        console.error('Errore Resend - Response:', errorResult);
+        console.error('Errore Resend - Headers:', emailResponse.headers);
         throw new Error(`Errore nell'invio email di test: ${errorResult.message || 'Errore sconosciuto'}`);
       }
     } catch (error) {
