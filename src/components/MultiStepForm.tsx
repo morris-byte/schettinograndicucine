@@ -94,18 +94,26 @@ const MultiStepForm = () => {
       // Your Make webhook URL
       const makeWebhookUrl = "https://hook.eu2.make.com/jog4x5m8xjw5gdpemv4ocgc4wwlx2dcm";
       
+      const payload = {
+        ...formData,
+        timestamp: new Date().toISOString(),
+        source: 'Schettino Form'
+      };
+      
+      console.log('Invio dati a Make:', payload);
+      console.log('URL webhook:', makeWebhookUrl);
+      
       const response = await fetch(makeWebhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          timestamp: new Date().toISOString(),
-          source: 'Schettino Form'
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       if (response.ok) {
         toast({
           title: "Preventivo inviato!",
