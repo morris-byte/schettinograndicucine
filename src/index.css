@@ -47,13 +47,13 @@ All colors MUST be HSL.
     --gradient-brand: linear-gradient(135deg, hsl(146 100% 22%), hsl(146 80% 25%));
     
     /* Shadows */
-    --shadow-form: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
-    --shadow-button: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-form: 0 25px 50px -12px rgb(0 0 0 / 0.25), 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    --shadow-button: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
 
     /* Transitions */
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
