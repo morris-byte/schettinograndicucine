@@ -210,8 +210,7 @@ const MultiStepForm = () => {
                   </p>
                   <Button 
                     onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
-                    variant="outline"
-                    className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-[var(--transition-smooth)]"
+                    className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]"
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Visita il nostro sito
