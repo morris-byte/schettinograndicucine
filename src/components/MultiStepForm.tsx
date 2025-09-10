@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import schettinoLogo from '@/assets/schettino-logo.png';
 
 interface FormData {
   isRestaurateur: boolean | null;
@@ -386,9 +387,11 @@ const MultiStepForm = () => {
       <div className="w-full max-w-4xl">
         {/* Company Info Section */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-3">
-            Schettino Grandi Cucine
-          </h1>
+          <img 
+            src={schettinoLogo} 
+            alt="Schettino Grandi Cucine" 
+            className="h-16 mx-auto mb-4"
+          />
           <p className="text-text-primary text-lg mb-4">
             Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
           </p>
