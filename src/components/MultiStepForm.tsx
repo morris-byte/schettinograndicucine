@@ -80,6 +80,46 @@ const MultiStepForm = () => {
   const handleBack = () => {
     setCurrentStep(prev => prev - 1);
   };
+  const handleTestEmail = async () => {
+    try {
+      const testPayload = {
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        phoneNumber: '+39 123 456 7890',
+        restaurantName: 'Ristorante Test',
+        restaurantZone: 'Napoli',
+        equipmentType: 'Cucina Professionale',
+        timestamp: new Date().toISOString(),
+        source: 'Test Email'
+      };
+
+      const emailResponse = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testPayload),
+      });
+
+      if (emailResponse.ok) {
+        toast({
+          title: "Email di test inviata!",
+          description: "Controlla le email dei commerciali.",
+        });
+      } else {
+        throw new Error('Errore nell\'invio email di test');
+      }
+    } catch (error) {
+      console.error('Errore email di test:', error);
+      toast({
+        title: "Errore",
+        description: "Errore nell'invio email di test.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async () => {
     // Validate phone number format
     const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
@@ -391,7 +431,16 @@ const MultiStepForm = () => {
         return null;
     }
   };
-  return <div className="min-h-screen bg-background flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
+      {/* Pulsante Test Email */}
+      <Button 
+        onClick={handleTestEmail}
+        className="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-md shadow-lg z-10"
+        size="sm"
+      >
+        📧 Test Email
+      </Button>
+      
       <div className="w-full max-w-4xl">
 
         {/* Form Card */}
