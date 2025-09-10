@@ -77,7 +77,7 @@ const MultiStepForm = () => {
   const handleBack = () => {
     setCurrentStep(prev => prev - 1);
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate phone number format
     const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
     if (!phoneRegex.test(formData.phoneNumber)) {
@@ -90,10 +90,40 @@ const MultiStepForm = () => {
       return; // Invalid email
     }
     
-    // Here you would typically send the data to your backend
-    console.log('Form submitted:', formData);
-    setThankYouType('success');
-    setShowThankYou(true);
+    try {
+      // Replace this URL with your Make webhook URL
+      const makeWebhookUrl = "https://hook.eu1.make.com/YOUR_WEBHOOK_ID_HERE";
+      
+      const response = await fetch(makeWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          timestamp: new Date().toISOString(),
+          source: 'Schettino Form'
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Preventivo inviato!",
+          description: "Ti contatteremo presto per discutere le tue esigenze.",
+        });
+        setThankYouType('success');
+        setShowThankYou(true);
+      } else {
+        throw new Error('Errore nell\'invio');
+      }
+    } catch (error) {
+      console.error('Errore invio form:', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore. Riprova o contattaci direttamente.",
+        variant: "destructive",
+      });
+    }
   };
   const getThankYouMessage = () => {
     switch (thankYouType) {
