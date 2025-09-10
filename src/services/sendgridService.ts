@@ -1,5 +1,5 @@
 // SendGrid - Servizio professionale per invio email
-const SENDGRID_API_KEY = 'SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // Da sostituire con la tua API key
+const SENDGRID_API_KEY = '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';
 
 export const sendEmailToCommerciali = async (leadData: any) => {
   try {
