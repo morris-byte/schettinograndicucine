@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
-import { sendTestEmail } from '../services/emailService';
+// import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
   isInCampania: boolean | null;
@@ -81,27 +81,6 @@ const MultiStepForm = () => {
     setCurrentStep(prev => prev - 1);
   };
 
-<<<<<<< HEAD
-  const handleTestEmail = async () => {
-    try {
-      const result = await sendTestEmail();
-      console.log('Email inviata:', result);
-      toast({
-        title: "Email di prova inviata!",
-        description: "L'email di test è stata inviata a vincenzopetronebiz@gmail.com",
-      });
-    } catch (error) {
-      console.error('Errore invio email:', error);
-      toast({
-        title: "Errore",
-        description: "Errore nell'invio dell'email di test.",
-        variant: "destructive",
-      });
-    }
-  };
-
-=======
->>>>>>> 9b41ea494bada7fa14bb6ba8d6f4db20c24a23c7
   const handleSubmit = async () => {
     // Validate phone number format
     const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
