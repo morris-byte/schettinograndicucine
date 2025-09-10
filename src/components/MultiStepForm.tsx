@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
-import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
+// import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
   isInCampania: boolean | null;
@@ -80,25 +80,6 @@ const MultiStepForm = () => {
   const handleBack = () => {
     setCurrentStep(prev => prev - 1);
   };
-  const handleTestEmail = async () => {
-    try {
-      console.log('Inviando email di test con SendGrid...');
-      
-      const result = await sendTestEmail();
-      
-      toast({
-        title: "Email di test inviata!",
-        description: "Controlla le email dei commerciali.",
-      });
-    } catch (error) {
-      console.error('Errore email di test:', error);
-      toast({
-        title: "Errore",
-        description: "Errore nell'invio email di test.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleSubmit = async () => {
     // Validate phone number format
@@ -140,14 +121,6 @@ const MultiStepForm = () => {
       if (response.ok) {
         console.log('Dati inviati a Make con successo.');
         
-        // Invia email ai commerciali tramite SendGrid
-        try {
-          const result = await sendEmailToCommerciali(payload);
-          console.log('Email inviata ai commerciali con successo:', result);
-        } catch (emailError) {
-          console.error('Errore nell\'invio email ai commerciali:', emailError);
-          // Non bloccare il flusso principale se l'email fallisce
-        }
         
         toast({
           title: "Preventivo inviato!",
@@ -401,14 +374,6 @@ const MultiStepForm = () => {
     }
   };
   return <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
-      {/* Pulsante Test Email */}
-      <Button 
-        onClick={handleTestEmail}
-        className="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-md shadow-lg z-10"
-        size="sm"
-      >
-        📧 Test Email
-      </Button>
       
       <div className="w-full max-w-4xl">
 
