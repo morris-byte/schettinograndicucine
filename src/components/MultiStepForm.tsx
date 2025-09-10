@@ -76,9 +76,12 @@ const MultiStepForm = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-form-background shadow-[var(--shadow-form)]">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-primary mb-4">
+            <CardTitle className="text-2xl font-bold text-primary mb-2">
               Schettino Grandi Cucine
             </CardTitle>
+            <p className="text-sm text-text-secondary mb-4">
+              Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
+            </p>
           </CardHeader>
           <CardContent className="text-center">
             <div className="mb-6">
@@ -380,26 +383,68 @@ const MultiStepForm = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-form-background shadow-[var(--shadow-form)]">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary mb-2">
+      <div className="w-full max-w-4xl">
+        {/* Company Info Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-primary mb-3">
             Schettino Grandi Cucine
-          </CardTitle>
-          <div className="flex justify-center space-x-2">
-            {[1, 2, 3, 4, 5, 6, 7].map((step) => (
-              <div
-                key={step}
-                className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${
-                  step <= currentStep ? 'bg-primary' : 'bg-border'
-                }`}
-              />
-            ))}
+          </h1>
+          <p className="text-text-primary text-lg mb-4">
+            Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">P</span>
+              </div>
+              <p className="text-xs text-text-secondary font-medium">Progettazione</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">V</span>
+              </div>
+              <p className="text-xs text-text-secondary font-medium">Vendita</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">A</span>
+              </div>
+              <p className="text-xs text-text-secondary font-medium">Assistenza</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">L</span>
+              </div>
+              <p className="text-xs text-text-secondary font-medium">SchettinoLab</p>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {renderStep()}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Form Card */}
+        <Card className="w-full max-w-md mx-auto bg-form-background shadow-[var(--shadow-form)]">
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl font-bold text-primary mb-2">
+              Richiedi un Preventivo
+            </CardTitle>
+            <p className="text-sm text-text-secondary">
+              Attrezzature professionali per ristoranti in Campania
+            </p>
+            <div className="flex justify-center space-x-2 mt-4">
+              {[1, 2, 3, 4, 5, 6, 7].map((step) => (
+                <div
+                  key={step}
+                  className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${
+                    step <= currentStep ? 'bg-primary' : 'bg-border'
+                  }`}
+                />
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {renderStep()}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
