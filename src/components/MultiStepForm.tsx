@@ -204,19 +204,21 @@ const MultiStepForm = () => {
                 {getThankYouMessage()}
               </p>
               {thankYouType === 'success' && (
-                <Button 
-                  onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
-                  variant="outline"
-                  className="w-full mb-4 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-[var(--transition-smooth)]"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Nel frattempo che vieni contattato, scopri di più visitando il nostro sito
-                </Button>
+                <div className="space-y-4">
+                  <p className="text-text-secondary text-sm">
+                    Nel frattempo che vieni contattato, scopri di più
+                  </p>
+                  <Button 
+                    onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
+                    variant="outline"
+                    className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-[var(--transition-smooth)]"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Visita il nostro sito
+                  </Button>
+                </div>
               )}
             </div>
-            {thankYouType === 'success' && <Button onClick={() => window.location.reload()} className="bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]">
-                Invia un altro modulo
-              </Button>}
           </CardContent>
         </Card>
       </div>;
