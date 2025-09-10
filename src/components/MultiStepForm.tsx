@@ -94,6 +94,19 @@ const MultiStepForm = () => {
         source: 'Test Email'
       };
 
+      // In locale, simula l'invio email
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('Modalità locale: Simulazione invio email');
+        console.log('Dati email di test:', testPayload);
+        
+        toast({
+          title: "Modalità Locale",
+          description: "In locale, l'email viene simulata. Controlla la console per i dettagli.",
+        });
+        return;
+      }
+
+      // In produzione, chiama l'API
       const emailResponse = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
