@@ -1,5 +1,8 @@
 // Configurazione email commerciali
 export const COMMERCIALI_EMAILS = [
+  'commerciale@schettinograndicucine.it',
+  'segreteria@schettinograndicucine.it',
+  'andrea@schettinograndicucine.it',
   'jagermorris@gmail.com',
   'vincenzopetronebiz@gmail.com',
 ];

@@ -37,7 +37,13 @@ const handler = async (req: Request): Promise<Response> => {
 
       const emailResponse = await resend.emails.send({
         from: "Schettino Grandi Cucine <onboarding@resend.dev>",
-        to: ["vincenzopetronebiz@gmail.com"],
+        to: [
+          "commerciale@schettinograndicucine.it",
+          "segreteria@schettinograndicucine.it", 
+          "andrea@schettinograndicucine.it",
+          "jagermorris@gmail.com",
+          "vincenzopetronebiz@gmail.com"
+        ],
         subject: "Email di prova",
         text: "email di prova",
       });
@@ -136,7 +142,13 @@ const handler = async (req: Request): Promise<Response> => {
 
       const emailResponse = await resend.emails.send({
         from: "Schettino Grandi Cucine <onboarding@resend.dev>",
-        to: ["vincenzopetronebiz@gmail.com", "jagermorris@gmail.com"],
+        to: [
+          "commerciale@schettinograndicucine.it",
+          "segreteria@schettinograndicucine.it", 
+          "andrea@schettinograndicucine.it",
+          "jagermorris@gmail.com",
+          "vincenzopetronebiz@gmail.com"
+        ],
         subject: "Nuovo Lead - " + leadData.firstName + " " + leadData.lastName,
         html: emailHtml,
       });
