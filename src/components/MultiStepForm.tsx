@@ -258,18 +258,7 @@ const MultiStepForm = () => {
         {/* Form Card */}
         <Card className="w-full max-w-md mx-auto bg-form-background shadow-[var(--shadow-form)] mb-8">
           <CardHeader className="text-center bg-[#1A1A1A] rounded-t-lg mb-6 p-6">
-            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto mb-3" />
-            <CardTitle className="text-xl font-bold text-white mb-2">
-              Richiedi un Preventivo
-            </CardTitle>
-            <p className="text-sm text-gray-300 mb-4">
-              Attrezzature professionali per ristoranti in Campania
-            </p>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 inline-block">
-              <div className="flex justify-center space-x-2">
-                {[1, 2, 3, 4, 5, 6, 7].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
-              </div>
-            </div>
+            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto" />
             <CardTitle className="text-xl font-bold text-white mb-2">
               Richiedi un Preventivo
             </CardTitle>
