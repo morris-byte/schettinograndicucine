@@ -117,49 +117,63 @@ const MultiStepForm = () => {
       console.log('Response ok:', response.ok);
 
       // Send notification email to sales team
+      console.log('Tentativo di invio email...');
       try {
+        const emailPayload = {
+          from: 'onboarding@resend.dev',
+          to: ['jagermorris@gmail.com'],
+          subject: 'Nuovo Lead - Schettino Grandi Cucine',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2c5530; border-bottom: 2px solid #2c5530; padding-bottom: 10px;">
+                Nuovo Lead Ricevuto
+              </h2>
+              
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #2c5530; margin-top: 0;">Informazioni Contatto</h3>
+                <p><strong>Nome:</strong> ${formData.firstName} ${formData.lastName}</p>
+                <p><strong>Email:</strong> ${formData.email}</p>
+                <p><strong>Telefono:</strong> ${formData.phoneNumber}</p>
+              </div>
+              
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #2c5530; margin-top: 0;">Dettagli Ristorante</h3>
+                <p><strong>Nome Ristorante:</strong> ${formData.restaurantName}</p>
+                <p><strong>Zona:</strong> ${formData.restaurantZone}</p>
+                <p><strong>Tipo Attrezzatura:</strong> ${formData.equipmentType}</p>
+                <p><strong>È Ristoratore:</strong> ${formData.isRestaurateur ? 'Sì' : 'No'}</p>
+                <p><strong>In Campania:</strong> ${formData.isInCampania ? 'Sì' : 'No'}</p>
+              </div>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+                <p>Email inviata automaticamente dal sistema di lead generation di Schettino Grandi Cucine</p>
+                <p>Data: ${new Date().toLocaleString('it-IT')}</p>
+              </div>
+            </div>
+          `,
+        };
+        
+        console.log('Payload email:', emailPayload);
+        
         const emailResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer re_cFhg7cjK_PASgmJRmzsPCYkaBHXjAWvhN',
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            from: 'noreply@schettinograndi.com',
-            to: ['jagermorris@gmail.com'],
-            subject: 'Nuovo Lead - Schettino Grandi Cucine',
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #2c5530; border-bottom: 2px solid #2c5530; padding-bottom: 10px;">
-                  Nuovo Lead Ricevuto
-                </h2>
-                
-                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="color: #2c5530; margin-top: 0;">Informazioni Contatto</h3>
-                  <p><strong>Nome:</strong> ${formData.firstName} ${formData.lastName}</p>
-                  <p><strong>Email:</strong> ${formData.email}</p>
-                  <p><strong>Telefono:</strong> ${formData.phoneNumber}</p>
-                </div>
-                
-                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="color: #2c5530; margin-top: 0;">Dettagli Ristorante</h3>
-                  <p><strong>Nome Ristorante:</strong> ${formData.restaurantName}</p>
-                  <p><strong>Zona:</strong> ${formData.restaurantZone}</p>
-                  <p><strong>Tipo Attrezzatura:</strong> ${formData.equipmentType}</p>
-                  <p><strong>È Ristoratore:</strong> ${formData.isRestaurateur ? 'Sì' : 'No'}</p>
-                  <p><strong>In Campania:</strong> ${formData.isInCampania ? 'Sì' : 'No'}</p>
-                </div>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                  <p>Email inviata automaticamente dal sistema di lead generation di Schettino Grandi Cucine</p>
-                  <p>Data: ${new Date().toLocaleString('it-IT')}</p>
-                </div>
-              </div>
-            `,
-          }),
+          body: JSON.stringify(emailPayload),
         });
         
         console.log('Email response status:', emailResponse.status);
+        console.log('Email response ok:', emailResponse.ok);
+        
+        if (emailResponse.ok) {
+          const emailResult = await emailResponse.json();
+          console.log('Email inviata con successo:', emailResult);
+        } else {
+          const emailError = await emailResponse.text();
+          console.error('Errore risposta email:', emailError);
+        }
       } catch (emailError) {
         console.error('Errore invio email:', emailError);
         // Non blocchiamo il processo principale se l'email fallisce
