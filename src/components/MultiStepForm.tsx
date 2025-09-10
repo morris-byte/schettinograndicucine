@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical } from 'lucide-react';
 import schettinoLogo from '@/assets/schettino-logo.png';
 
 interface FormData {
@@ -392,28 +392,28 @@ const MultiStepForm = () => {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">P</span>
+              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <Ruler className="w-6 h-6 text-primary" />
               </div>
-              <p className="text-xs text-text-secondary font-medium">Progettazione</p>
+              <p className="text-xs text-text-primary font-medium">Progettazione</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">V</span>
+              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <ShoppingCart className="w-6 h-6 text-primary" />
               </div>
-              <p className="text-xs text-text-secondary font-medium">Vendita</p>
+              <p className="text-xs text-text-primary font-medium">Vendita</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">A</span>
+              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <Wrench className="w-6 h-6 text-primary" />
               </div>
-              <p className="text-xs text-text-secondary font-medium">Assistenza</p>
+              <p className="text-xs text-text-primary font-medium">Assistenza</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">L</span>
+              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
+                <FlaskConical className="w-6 h-6 text-primary" />
               </div>
-              <p className="text-xs text-text-secondary font-medium">SchettinoLab</p>
+              <p className="text-xs text-text-primary font-medium">SchettinoLab</p>
             </div>
           </div>
         </div>
