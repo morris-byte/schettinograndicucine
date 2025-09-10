@@ -195,8 +195,10 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <Input placeholder="Nome" value={formData.firstName} onChange={e => handleInputChange('firstName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
-              <Input placeholder="Cognome" value={formData.lastName} onChange={e => handleInputChange('lastName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+              <div className="grid grid-cols-2 gap-3">
+                <Input placeholder="Nome" value={formData.firstName} onChange={e => handleInputChange('firstName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+                <Input placeholder="Cognome" value={formData.lastName} onChange={e => handleInputChange('lastName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+              </div>
               <Button onClick={handleNext} disabled={!formData.firstName.trim() || !formData.lastName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
