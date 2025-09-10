@@ -129,7 +129,7 @@ const MultiStepForm = () => {
               <Button onClick={() => handleAnswer(true, 'isInCampania')} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
                 Sì, in Campania
               </Button>
-              <Button onClick={() => handleAnswer(false, 'isInCampania')} variant="outline" className="w-full border-border hover:bg-secondary text-text-primary transition-[var(--transition-smooth)]" size="lg">
+              <Button onClick={() => handleAnswer(false, 'isInCampania')} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
                 No, fuori Campania
               </Button>
             </div>
