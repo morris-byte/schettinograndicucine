@@ -314,7 +314,7 @@ const MultiStepForm = () => {
 
         {/* Company Info Section */}
         <div className="text-center">
-          <p className="text-white mb-4 text-3xl font-semibold">
+          <p className="text-white mb-4 text-lg font-semibold">
             Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-6">
