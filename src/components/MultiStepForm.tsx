@@ -53,10 +53,14 @@ const MultiStepForm = () => {
       [field]: value
     }));
     
-    // Validate phone number format on change
+    // Validate phone number format on change (allow spaces)
     if (field === 'phoneNumber' && value.length > 3) {
-      const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
-      if (!phoneRegex.test(value)) {
+      const isValidPhone = (raw: string) => {
+        const compact = raw.replace(/\s+/g, '');
+        const phoneRegex = /^(\+39)?((3\d{8,9})|(0\d{6,10}))$/;
+        return phoneRegex.test(compact);
+      };
+      if (!isValidPhone(value)) {
         toast({
           description: "Formato telefono non valido. Usa +39 123 456 7890 o 123 456 7890",
           duration: 2000,
@@ -83,9 +87,13 @@ const MultiStepForm = () => {
   };
 
   const handleSubmit = async () => {
-    // Validate phone number format
-    const phoneRegex = /^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/;
-    if (!phoneRegex.test(formData.phoneNumber)) {
+    // Validate phone number format (allow spaces)
+    const isValidPhone = (raw: string) => {
+      const compact = raw.replace(/\s+/g, '');
+      const phoneRegex = /^(\+39)?((3\d{8,9})|(0\d{6,10}))$/;
+      return phoneRegex.test(compact);
+    };
+    if (!isValidPhone(formData.phoneNumber)) {
       return; // Invalid phone number
     }
     
@@ -174,39 +182,33 @@ const MultiStepForm = () => {
       case 'not-campania':
         return "Schettino Grandi Cucine si occupa della distribuzione di attrezzatura da cucina professionale per ristoranti e hotel in Campania e non opera al di fuori della regione. Grazie per averci scritto!";
       default:
-        return "Grazie per aver compilato il modulo! Verrai contattato il prima possibile dal nostro team";
+        return "Grazie per aver compilato il modulo!";
     }
   };
   if (showThankYou) {
     return <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-form-background shadow-[var(--shadow-form)]">
+        <Card className="w-full max-w-md bg-black shadow-[var(--shadow-form)]">
           <CardHeader className="text-center">
-            <div className="mb-4">
+            <div className="mb-1">
               <img 
                 src={schettinoLogo} 
                 alt="Schettino Grandi Cucine" 
-                className="h-16 mx-auto mb-4"
+                className="h-16 mx-auto mb-1"
               />
             </div>
-            <CardTitle className="text-2xl font-bold text-primary mb-2">
-              Schettino Grandi Cucine
-            </CardTitle>
-            <p className="text-sm text-text-secondary mb-4">
-              Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
-            </p>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center">
-                <ChevronRight className="w-8 h-8 text-primary-foreground" />
-              </div>
-              <p className="text-text-primary leading-relaxed mb-6">
+            <div className="mb-2 mt-1">
+              <p className="text-white leading-relaxed mb-1 font-bold text-lg">
                 {getThankYouMessage()}
+              </p>
+              <p className="text-white text-sm mb-2">
+                Verrai contattato il prima possibile dal nostro team
               </p>
               {thankYouType === 'success' && (
                 <div className="space-y-4">
-                  <p className="text-text-secondary text-sm">
-                    Nel frattempo che vieni contattato, scopri di più
+                  <p className="text-white text-sm">
+                    Nel frattempo puoi scoprire di più su di noi
                   </p>
                   <Button 
                     onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
@@ -227,10 +229,10 @@ const MultiStepForm = () => {
       case 1:
         return <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-text-primary mb-2">
+              <h2 className="text-xl font-semibold text-text-primary mb-1 leading-tight">
                 Sei un ristoratore?
               </h2>
-              <p className="text-text-secondary text-sm">
+              <p className="text-text-secondary text-sm -mt-1">
                 Prima domanda per comprendere le tue necessità
               </p>
             </div>
@@ -255,10 +257,10 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-3">
               <Button onClick={() => handleAnswer(true, 'isInCampania')} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
-                Sì, in Campania
+                Sì, è in Campania
               </Button>
               <Button onClick={() => handleAnswer(false, 'isInCampania')} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
-                No, fuori Campania
+                No, si trova fuori dalla Campania
               </Button>
             </div>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
@@ -273,7 +275,7 @@ const MultiStepForm = () => {
                 In che zona si trova il tuo ristorante?
               </h2>
               <p className="text-text-secondary text-sm">
-                Provincia o città principale in Campania
+                Indica la città o paese in cui operi
               </p>
             </div>
             <div className="space-y-4">
@@ -375,7 +377,7 @@ const MultiStepForm = () => {
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="tel" 
               />
-              <Button onClick={handleNext} disabled={!formData.phoneNumber.trim() || !/^(\+39\s?)?((3\d{2}|0\d{1,4})\s?\d{1,8})$/.test(formData.phoneNumber)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button onClick={handleNext} disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^(\+39)?((3\d{8,9})|(0\d{6,10}))$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
@@ -425,13 +427,15 @@ const MultiStepForm = () => {
         {/* Form Card */}
         <Card className="w-full max-w-md mx-auto bg-form-background shadow-[var(--shadow-form)] mb-8">
           <CardHeader className="text-center bg-[#1A1A1A] rounded-t-lg mb-6 p-6">
-            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto" />
-            <CardTitle className="text-xl font-bold text-white mb-2">
-              Richiedi un Preventivo
-            </CardTitle>
-            <p className="text-sm text-text-secondary mb-4">
-              Attrezzature professionali per ristoranti in Campania
-            </p>
+            <img src={schettinoLogo} alt="Schettino Grandi Cucine" className="h-12 mx-auto mb-2" />
+            <div className="mb-4">
+              <CardTitle className="text-xl font-bold text-white mb-0 leading-tight">
+                Richiedi più informazioni
+              </CardTitle>
+              <p className="text-sm text-text-secondary mt-0">
+                Per avere un preventivo personalizzato
+              </p>
+            </div>
             <div className="flex justify-center space-x-2 mt-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
             </div>
