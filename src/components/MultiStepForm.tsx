@@ -7,7 +7,7 @@ import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, S
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 import confetti from 'canvas-confetti';
-import { initGA4, trackFormSubmission, trackFormStep, trackButtonClick } from '@/config/analytics';
+import { initGTM, initGA4, trackFormSubmission, trackFormStep, trackButtonClick } from '@/config/analytics';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -37,9 +37,10 @@ const MultiStepForm = () => {
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
 
-  // Initialize GA4 on component mount
+  // Initialize GTM and GA4 on component mount
   useEffect(() => {
-    initGA4();
+    initGTM(); // Initialize GTM first
+    initGA4(); // Initialize GA4 as backup
   }, []);
   const handleAnswer = (answer: boolean, field: 'isRestaurateur' | 'isInCampania') => {
     setFormData(prev => ({

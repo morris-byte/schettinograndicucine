@@ -1,11 +1,28 @@
 // Google Analytics 4 and Google Ads Configuration
-// Replace these with your actual tracking IDs
+// GTM + GA4 + Google Ads Hybrid Setup
 
-export const GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX'; // Replace with your GA4 Measurement ID
-export const GOOGLE_ADS_CONVERSION_ID = 'AW-XXXXXXXXX'; // Replace with your Google Ads Conversion ID
-export const GOOGLE_ADS_CONVERSION_LABEL = 'XXXXXXXXX'; // Replace with your conversion label
+export const GA4_MEASUREMENT_ID = 'G-Y5B86LG05F'; // Your GA4 Measurement ID
+export const GOOGLE_ADS_CONVERSION_ID = '570-400-4621'; // Your Google Ads Conversion ID
+export const GOOGLE_ADS_CONVERSION_LABEL = 'preventivo_form'; // Conversion label for form submission
+export const GTM_CONTAINER_ID = 'GTM-PL5HZX6R'; // Your GTM Container ID
 
-// Initialize Google Analytics 4
+// Initialize GTM and GA4
+export const initGTM = () => {
+  if (typeof window !== 'undefined') {
+    // GTM is already loaded via HTML, just initialize dataLayer
+    window.dataLayer = window.dataLayer || [];
+    
+    // Push initial page view to GTM
+    window.dataLayer.push({
+      'event': 'gtm.js',
+      'gtm.start': new Date().getTime(),
+      'page_title': document.title,
+      'page_location': window.location.href,
+    });
+  }
+};
+
+// Initialize Google Analytics 4 (backup method)
 export const initGA4 = () => {
   if (typeof window !== 'undefined' && GA4_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
     // Load Google Analytics script
@@ -30,21 +47,37 @@ export const initGA4 = () => {
 
 // Track form submission event
 export const trackFormSubmission = (formData: any) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    // GA4 Event
-    window.gtag('event', 'form_submit', {
-      event_category: 'engagement',
-      event_label: 'preventivo_request',
-      value: 1,
-      custom_parameters: {
-        restaurant_name: formData.restaurantName,
-        restaurant_zone: formData.restaurantZone,
-        equipment_type: formData.equipmentType,
-      }
+  if (typeof window !== 'undefined') {
+    // Push to GTM dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      'event': 'form_submit',
+      'event_category': 'engagement',
+      'event_label': 'preventivo_request',
+      'value': 1,
+      'restaurant_name': formData.restaurantName,
+      'restaurant_zone': formData.restaurantZone,
+      'equipment_type': formData.equipmentType,
+      'conversion_id': GOOGLE_ADS_CONVERSION_ID,
+      'conversion_label': GOOGLE_ADS_CONVERSION_LABEL,
+      'transaction_id': `preventivo_${Date.now()}`,
+      'currency': 'EUR',
     });
 
-    // Google Ads Conversion
-    if (GOOGLE_ADS_CONVERSION_ID !== 'AW-XXXXXXXXX') {
+    // Also send via gtag for direct GA4 tracking
+    if (window.gtag) {
+      window.gtag('event', 'form_submit', {
+        event_category: 'engagement',
+        event_label: 'preventivo_request',
+        value: 1,
+        custom_parameters: {
+          restaurant_name: formData.restaurantName,
+          restaurant_zone: formData.restaurantZone,
+          equipment_type: formData.equipmentType,
+        }
+      });
+
+      // Google Ads Conversion
       window.gtag('event', 'conversion', {
         send_to: `${GOOGLE_ADS_CONVERSION_ID}/${GOOGLE_ADS_CONVERSION_LABEL}`,
         value: 1.0,
@@ -57,35 +90,70 @@ export const trackFormSubmission = (formData: any) => {
 
 // Track page views
 export const trackPageView = (pageName: string) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', 'page_view', {
-      page_title: pageName,
-      page_location: window.location.href,
+  if (typeof window !== 'undefined') {
+    // Push to GTM dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      'event': 'page_view',
+      'page_title': pageName,
+      'page_location': window.location.href,
     });
+
+    // Also send via gtag
+    if (window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_title: pageName,
+        page_location: window.location.href,
+      });
+    }
   }
 };
 
 // Track form step completion
 export const trackFormStep = (step: number, stepName: string) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', 'form_step', {
-      event_category: 'form_progress',
-      event_label: stepName,
-      value: step,
+  if (typeof window !== 'undefined') {
+    // Push to GTM dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      'event': 'form_step',
+      'event_category': 'form_progress',
+      'event_label': stepName,
+      'value': step,
     });
+
+    // Also send via gtag
+    if (window.gtag) {
+      window.gtag('event', 'form_step', {
+        event_category: 'form_progress',
+        event_label: stepName,
+        value: step,
+      });
+    }
   }
 };
 
 // Track button clicks
 export const trackButtonClick = (buttonName: string, location: string) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', 'click', {
-      event_category: 'button',
-      event_label: buttonName,
-      custom_parameters: {
-        location: location,
-      }
+  if (typeof window !== 'undefined') {
+    // Push to GTM dataLayer
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      'event': 'button_click',
+      'event_category': 'button',
+      'event_label': buttonName,
+      'location': location,
     });
+
+    // Also send via gtag
+    if (window.gtag) {
+      window.gtag('event', 'click', {
+        event_category: 'button',
+        event_label: buttonName,
+        custom_parameters: {
+          location: location,
+        }
+      });
+    }
   }
 };
 
