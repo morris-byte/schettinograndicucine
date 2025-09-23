@@ -6,19 +6,19 @@ export const GOOGLE_ADS_CONVERSION_ID = '570-400-4621'; // Your Google Ads Conve
 export const GOOGLE_ADS_CONVERSION_LABEL = 'preventivo_form'; // Conversion label for form submission
 export const GTM_CONTAINER_ID = 'GTM-PL5HZX6R'; // Your GTM Container ID
 
-// Initialize GTM and GA4
-export const initGTM = () => {
+// Initialize GA4 (simplified)
+export const initGA4Simple = () => {
   if (typeof window !== 'undefined') {
-    // GTM is already loaded via HTML, just initialize dataLayer
+    // GA4 is already loaded via HTML, just initialize dataLayer
     window.dataLayer = window.dataLayer || [];
     
-    // Push initial page view to GTM
-    window.dataLayer.push({
-      'event': 'gtm.js',
-      'gtm.start': new Date().getTime(),
-      'page_title': document.title,
-      'page_location': window.location.href,
-    });
+    // Push initial page view
+    if (window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_title: document.title,
+        page_location: window.location.href,
+      });
+    }
   }
 };
 
