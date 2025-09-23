@@ -1,9 +1,11 @@
-// Google Analytics 4 and Google Ads Configuration
-// GTM + GA4 + Google Ads Hybrid Setup
+// Google Analytics 4, Google Ads and Meta Pixel Configuration
+// GTM + GA4 + Google Ads + Meta Pixel Hybrid Setup
 
 export const GOOGLE_ADS_ACCOUNT_ID = 'AW-17544893918'; // Your Google Ads Account ID
 export const GOOGLE_ADS_CONVERSION_ID = '570-400-4621'; // Your Google Ads Conversion ID
 export const GOOGLE_ADS_CONVERSION_LABEL = 'preventivo_form'; // Conversion label for form submission
+
+export const META_PIXEL_ID = '1073356054528227'; // Your Meta Pixel ID
 
 // Initialize GA4 (simplified)
 export const initGA4Simple = () => {
@@ -70,6 +72,21 @@ export const trackFormSubmission = (formData: any) => {
         transaction_id: `preventivo_${Date.now()}`,
       });
     }
+
+    // Send Meta Pixel Lead event
+    if (window.fbq) {
+      window.fbq('track', 'Lead', {
+        content_name: 'Preventivo Richiesto',
+        content_category: 'Form Submission',
+        value: 1.0,
+        currency: 'EUR',
+        custom_data: {
+          restaurant_name: formData.restaurantName,
+          restaurant_zone: formData.restaurantZone,
+          equipment_type: formData.equipmentType,
+        }
+      });
+    }
   }
 };
 
@@ -91,6 +108,9 @@ export const trackPageView = (pageName: string) => {
         page_location: window.location.href,
       });
     }
+
+    // Send Meta Pixel PageView (already handled by base script)
+    // No need to call fbq('track', 'PageView') as it's automatic
   }
 };
 
@@ -112,6 +132,15 @@ export const trackFormStep = (step: number, stepName: string) => {
         event_category: 'form_progress',
         event_label: stepName,
         value: step,
+      });
+    }
+
+    // Send Meta Pixel Custom Event for form progress
+    if (window.fbq) {
+      window.fbq('trackCustom', 'FormStep', {
+        step_number: step,
+        step_name: stepName,
+        content_category: 'Form Progress',
       });
     }
   }
@@ -139,13 +168,23 @@ export const trackButtonClick = (buttonName: string, location: string) => {
         }
       });
     }
+
+    // Send Meta Pixel Custom Event for button clicks
+    if (window.fbq) {
+      window.fbq('trackCustom', 'ButtonClick', {
+        button_name: buttonName,
+        location: location,
+        content_category: 'Button Interaction',
+      });
+    }
   }
 };
 
-// Declare global gtag function
+// Declare global functions
 declare global {
   interface Window {
     gtag: (...args: any[]) => void;
     dataLayer: any[];
+    fbq: (...args: any[]) => void;
   }
 }
