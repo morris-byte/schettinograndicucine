@@ -1,10 +1,9 @@
 // Google Analytics 4 and Google Ads Configuration
 // GTM + GA4 + Google Ads Hybrid Setup
 
-export const GA4_MEASUREMENT_ID = 'G-Y5B86LG05F'; // Your GA4 Measurement ID
+export const GOOGLE_ADS_ACCOUNT_ID = 'AW-17544893918'; // Your Google Ads Account ID
 export const GOOGLE_ADS_CONVERSION_ID = '570-400-4621'; // Your Google Ads Conversion ID
 export const GOOGLE_ADS_CONVERSION_LABEL = 'preventivo_form'; // Conversion label for form submission
-export const GTM_CONTAINER_ID = 'GTM-PL5HZX6R'; // Your GTM Container ID
 
 // Initialize GA4 (simplified)
 export const initGA4Simple = () => {
@@ -48,7 +47,7 @@ export const initGA4 = () => {
 // Track form submission event
 export const trackFormSubmission = (formData: any) => {
   if (typeof window !== 'undefined') {
-    // Push to GTM dataLayer
+    // Push to dataLayer
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
       'event': 'form_submit',
@@ -58,26 +57,12 @@ export const trackFormSubmission = (formData: any) => {
       'restaurant_name': formData.restaurantName,
       'restaurant_zone': formData.restaurantZone,
       'equipment_type': formData.equipmentType,
-      'conversion_id': GOOGLE_ADS_CONVERSION_ID,
-      'conversion_label': GOOGLE_ADS_CONVERSION_LABEL,
       'transaction_id': `preventivo_${Date.now()}`,
       'currency': 'EUR',
     });
 
-    // Also send via gtag for direct GA4 tracking
+    // Send Google Ads conversion
     if (window.gtag) {
-      window.gtag('event', 'form_submit', {
-        event_category: 'engagement',
-        event_label: 'preventivo_request',
-        value: 1,
-        custom_parameters: {
-          restaurant_name: formData.restaurantName,
-          restaurant_zone: formData.restaurantZone,
-          equipment_type: formData.equipmentType,
-        }
-      });
-
-      // Google Ads Conversion
       window.gtag('event', 'conversion', {
         send_to: `${GOOGLE_ADS_CONVERSION_ID}/${GOOGLE_ADS_CONVERSION_LABEL}`,
         value: 1.0,
