@@ -145,3 +145,4 @@ Per problemi o domande:
 **Pixel ID**: `1073356054528227`  
 **Sito**: `https://schettinograndicucine.lovable.app`  
 **Ultimo aggiornamento**: $(date)
+
