@@ -3,22 +3,26 @@
 
 // Track form submission
 export const trackFormSubmission = (formData: any) => {
+  console.log('🔍 trackFormSubmission chiamata con:', formData);
+  console.log('🔍 window.gtag disponibile:', typeof window !== 'undefined' && !!window.gtag);
+  
   if (typeof window !== 'undefined' && window.gtag) {
+    console.log('🚀 Invio evento generate_lead a GA4');
     window.gtag('event', 'generate_lead', {
       event_category: 'Contact Form',
       event_label: 'Preventivo Request',
       value: 1,
       currency: 'EUR',
-      custom_parameters: {
-        restaurant_name: formData.restaurantName,
-        restaurant_zone: formData.restaurantZone,
-        equipment_type: formData.equipmentType,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone: formData.phoneNumber,
-        email: formData.email
-      }
+      restaurant_name: formData.restaurantName,
+      restaurant_zone: formData.restaurantZone,
+      equipment_type: formData.equipmentType,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      phone: formData.phoneNumber,
+      email: formData.email
     });
+  } else {
+    console.error('❌ window.gtag non disponibile');
   }
 };
 
