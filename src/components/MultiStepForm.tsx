@@ -7,6 +7,7 @@ import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, S
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 import confetti from 'canvas-confetti';
+import { trackFormSubmission, trackFormStep, trackButtonClick } from '@/config/analytics';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -40,6 +41,11 @@ const MultiStepForm = () => {
       ...prev,
       [field]: answer
     }));
+    
+    // Track form step
+    const stepName = field === 'isRestaurateur' ? 'Restaurateur Question' : 'Campania Question';
+    trackFormStep(currentStep, stepName);
+    
     if (!answer) {
       setThankYouType(field === 'isRestaurateur' ? 'not-restaurateur' : 'not-campania');
       setShowThankYou(true);
@@ -148,6 +154,9 @@ const MultiStepForm = () => {
         } catch (emailError) {
           console.log('Errore invio email notifica:', emailError);
         }
+        
+        // Track form submission
+        trackFormSubmission(formData);
         
         // Fire confetti animation
         confetti({
