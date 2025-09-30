@@ -1,5 +1,5 @@
 // Google Tag Manager (GTM) Configuration
-// GTM ID: GTM-PL5HZX6R
+// GTM ID: GTM-PM7BJ5CS
 
 // Push event to GTM dataLayer
 export const pushToDataLayer = (eventData: any) => {
