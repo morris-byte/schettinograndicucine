@@ -7,7 +7,6 @@ import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, S
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 import confetti from 'canvas-confetti';
-import { trackFormSubmission, trackFormStep, trackButtonClick } from '@/config/analytics';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -42,9 +41,6 @@ const MultiStepForm = () => {
       [field]: answer
     }));
     
-    // Track form step
-    const stepName = field === 'isRestaurateur' ? 'Restaurateur Question' : 'Campania Question';
-    trackFormStep(currentStep, stepName);
     
     if (!answer) {
       setThankYouType(field === 'isRestaurateur' ? 'not-restaurateur' : 'not-campania');
@@ -155,23 +151,6 @@ const MultiStepForm = () => {
           console.log('Errore invio email notifica:', emailError);
         }
         
-        // Track form submission
-        console.log('🔍 Prima di chiamare trackFormSubmission');
-        console.log('🔍 window.gtag disponibile:', typeof window !== 'undefined' && !!window.gtag);
-        console.log('🔍 window.dataLayer:', window.dataLayer);
-        
-        // Test manuale GA4
-        if (typeof window !== 'undefined' && window.gtag) {
-          console.log('🧪 Test manuale GA4 generate_lead');
-          window.gtag('event', 'generate_lead', {
-            event_category: 'Test',
-            event_label: 'Test Manuale',
-            value: 1
-          });
-        }
-        
-        trackFormSubmission(formData);
-        console.log('🔍 Dopo trackFormSubmission');
         
         // Fire confetti animation
         confetti({
