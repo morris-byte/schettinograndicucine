@@ -156,7 +156,22 @@ const MultiStepForm = () => {
         }
         
         // Track form submission
+        console.log('🔍 Prima di chiamare trackFormSubmission');
+        console.log('🔍 window.gtag disponibile:', typeof window !== 'undefined' && !!window.gtag);
+        console.log('🔍 window.dataLayer:', window.dataLayer);
+        
+        // Test manuale GA4
+        if (typeof window !== 'undefined' && window.gtag) {
+          console.log('🧪 Test manuale GA4 generate_lead');
+          window.gtag('event', 'generate_lead', {
+            event_category: 'Test',
+            event_label: 'Test Manuale',
+            value: 1
+          });
+        }
+        
         trackFormSubmission(formData);
+        console.log('🔍 Dopo trackFormSubmission');
         
         // Fire confetti animation
         confetti({
