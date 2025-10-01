@@ -13,9 +13,20 @@ declare global {
 export const initGA4 = () => {
   if (typeof window !== 'undefined' && window.gtag) {
     console.log('✅ GA4 initialized with ID:', GA4_MEASUREMENT_ID);
+    console.log('🔍 window.gtag function:', typeof window.gtag);
+    console.log('🔍 window.dataLayer:', window.dataLayer);
+    
+    // Test event to verify GA4 is working
+    window.gtag('event', 'test_event', {
+      test_parameter: 'GA4 is working!'
+    });
+    console.log('🧪 Test event sent to GA4');
+    
     return true;
   }
   console.warn('⚠️ GA4 not available');
+  console.warn('🔍 window object:', typeof window);
+  console.warn('🔍 window.gtag:', typeof window?.gtag);
   return false;
 };
 
@@ -24,25 +35,22 @@ export const trackFormSubmission = (formData: any) => {
   if (typeof window !== 'undefined' && window.gtag) {
     console.log('📊 Tracking form submission:', formData);
     
-    // Track lead generation
+    // Track lead generation with correct GA4 syntax
     window.gtag('event', 'generate_lead', {
-      event_category: 'Form',
-      event_label: 'Contact Form Submission',
+      currency: 'EUR',
       value: 1,
-      custom_parameters: {
-        restaurant_name: formData.restaurantName || 'N/A',
-        is_restaurateur: formData.isRestaurateur ? 'Yes' : 'No',
-        is_in_campania: formData.isInCampania ? 'Yes' : 'No',
-        restaurant_zone: formData.restaurantZone || 'N/A',
-        equipment_type: formData.equipmentType || 'N/A'
-      }
+      restaurant_name: formData.restaurantName || 'N/A',
+      is_restaurateur: formData.isRestaurateur ? 'Yes' : 'No',
+      is_in_campania: formData.isInCampania ? 'Yes' : 'No',
+      restaurant_zone: formData.restaurantZone || 'N/A',
+      equipment_type: formData.equipmentType || 'N/A'
     });
 
-    // Track conversion
-    window.gtag('event', 'conversion', {
-      send_to: GA4_MEASUREMENT_ID,
-      value: 1.0,
-      currency: 'EUR'
+    // Track custom event for form submission
+    window.gtag('event', 'form_submit', {
+      event_category: 'Form',
+      event_label: 'Contact Form Submission',
+      value: 1
     });
 
     console.log('✅ Form submission tracked successfully');
@@ -57,10 +65,9 @@ export const trackFormStep = (step: number, stepName: string) => {
     console.log(`📊 Tracking form step ${step}: ${stepName}`);
     
     window.gtag('event', 'form_step', {
-      event_category: 'Form',
-      event_label: stepName,
-      value: step,
-      step_number: step
+      step_number: step,
+      step_name: stepName,
+      event_category: 'Form'
     });
 
     console.log('✅ Form step tracked successfully');
@@ -74,10 +81,10 @@ export const trackButtonClick = (buttonName: string, location: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
     console.log(`📊 Tracking button click: ${buttonName} in ${location}`);
     
-    window.gtag('event', 'click', {
-      event_category: 'Button',
-      event_label: buttonName,
-      location: location
+    window.gtag('event', 'button_click', {
+      button_name: buttonName,
+      button_location: location,
+      event_category: 'Button'
     });
 
     console.log('✅ Button click tracked successfully');
