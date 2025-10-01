@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,6 +7,7 @@ import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, S
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 import confetti from 'canvas-confetti';
+import { trackFormSubmission, trackFormStep, trackButtonClick, initGA4 } from '@/config/analytics';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -35,12 +36,20 @@ const MultiStepForm = () => {
   });
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
+
+  // Initialize GA4 on component mount
+  useEffect(() => {
+    initGA4();
+  }, []);
   const handleAnswer = (answer: boolean, field: 'isRestaurateur' | 'isInCampania') => {
     setFormData(prev => ({
       ...prev,
       [field]: answer
     }));
     
+    // Track form step
+    const stepName = field === 'isRestaurateur' ? 'Restaurateur Question' : 'Campania Question';
+    trackFormStep(currentStep, stepName);
     
     if (!answer) {
       setThankYouType(field === 'isRestaurateur' ? 'not-restaurateur' : 'not-campania');
@@ -159,6 +168,9 @@ const MultiStepForm = () => {
           origin: { y: 0.6 }
         });
         
+        // Track form submission
+        trackFormSubmission(formData);
+        
         toast({
           title: "Preventivo inviato!",
           description: "Ti contatteremo presto per discutere le tue esigenze.",
@@ -240,10 +252,16 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-3">
-              <Button onClick={() => handleAnswer(true, 'isRestaurateur')} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
+              <Button onClick={() => {
+                trackButtonClick('Sì, sono un ristoratore', 'Step 1');
+                handleAnswer(true, 'isRestaurateur');
+              }} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
                 Sì, sono un ristoratore
               </Button>
-              <Button onClick={() => handleAnswer(false, 'isRestaurateur')} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
+              <Button onClick={() => {
+                trackButtonClick('No, non sono un ristoratore', 'Step 1');
+                handleAnswer(false, 'isRestaurateur');
+              }} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
                 No, non sono un ristoratore
               </Button>
             </div>
@@ -259,10 +277,16 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-3">
-              <Button onClick={() => handleAnswer(true, 'isInCampania')} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
+              <Button onClick={() => {
+                trackButtonClick('Sì, è in Campania', 'Step 2');
+                handleAnswer(true, 'isInCampania');
+              }} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
                 Sì, è in Campania
               </Button>
-              <Button onClick={() => handleAnswer(false, 'isInCampania')} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
+              <Button onClick={() => {
+                trackButtonClick('No, si trova fuori dalla Campania', 'Step 2');
+                handleAnswer(false, 'isInCampania');
+              }} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
                 No, si trova fuori dalla Campania
               </Button>
             </div>
