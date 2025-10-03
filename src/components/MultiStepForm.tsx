@@ -19,6 +19,7 @@ interface FormData {
   lastName: string;
   phoneNumber: string;
   email: string;
+  wantsCatalog: boolean | null;
 }
 const MultiStepForm = () => {
   const { toast } = useToast();
@@ -32,7 +33,8 @@ const MultiStepForm = () => {
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    email: ''
+    email: '',
+    wantsCatalog: null
   });
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
@@ -58,22 +60,61 @@ const MultiStepForm = () => {
     }
     setCurrentStep(prev => prev + 1);
   };
-  const handleInputChange = (field: keyof FormData, value: string) => {
+
+  const handleCatalogAnswer = (answer: boolean) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      wantsCatalog: answer
     }));
     
-    // Validate phone number format on change (allow spaces)
-    if (field === 'phoneNumber' && value.length > 3) {
+    // Track form step
+    trackFormStep(currentStep, 'Catalog Question');
+    
+    setCurrentStep(prev => prev + 1);
+  };
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    let processedValue = value;
+    
+    // Process phone number input
+    if (field === 'phoneNumber') {
+      // Remove all non-numeric characters except +
+      const cleaned = value.replace(/[^\d+]/g, '');
+      
+      // If it doesn't start with +39, add it
+      if (!cleaned.startsWith('+39')) {
+        // If it starts with +, replace with +39
+        if (cleaned.startsWith('+')) {
+          processedValue = '+39' + cleaned.substring(1);
+        } else {
+          // If it's just numbers, add +39
+          processedValue = '+39' + cleaned;
+        }
+      } else {
+        processedValue = cleaned;
+      }
+      
+      // Limit to 13 characters total (+39 + 10 digits)
+      if (processedValue.length > 13) {
+        processedValue = processedValue.substring(0, 13);
+      }
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: processedValue
+    }));
+    
+    // Validate phone number format on change
+    if (field === 'phoneNumber' && processedValue.length >= 6) {
       const isValidPhone = (raw: string) => {
         const compact = raw.replace(/\s+/g, '');
-        const phoneRegex = /^(\+39)?((3\d{8,9})|(0\d{6,10}))$/;
+        // Must start with +39 and have exactly 10 more digits
+        const phoneRegex = /^\+39\d{10}$/;
         return phoneRegex.test(compact);
       };
-      if (!isValidPhone(value)) {
+      if (!isValidPhone(processedValue)) {
         toast({
-          description: "Formato telefono non valido. Usa +39 123 456 7890 o 123 456 7890",
+          description: "Il numero deve avere esattamente 10 cifre dopo +39",
           duration: 2000,
         });
       }
@@ -98,13 +139,17 @@ const MultiStepForm = () => {
   };
 
   const handleSubmit = async () => {
-    // Validate phone number format (allow spaces)
+    // Validate phone number format (must be +39 followed by exactly 10 digits)
     const isValidPhone = (raw: string) => {
       const compact = raw.replace(/\s+/g, '');
-      const phoneRegex = /^(\+39)?((3\d{8,9})|(0\d{6,10}))$/;
+      const phoneRegex = /^\+39\d{10}$/;
       return phoneRegex.test(compact);
     };
     if (!isValidPhone(formData.phoneNumber)) {
+      toast({
+        description: "Il numero deve avere esattamente 10 cifre dopo +39",
+        duration: 3000,
+      });
       return; // Invalid phone number
     }
     
@@ -399,13 +444,13 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <Input 
-                placeholder="Il tuo numero di telefono (es. +39 123 456 7890)" 
+                placeholder="Il tuo numero di telefono (10 cifre, +39 aggiunto automaticamente)" 
                 value={formData.phoneNumber} 
                 onChange={e => handleInputChange('phoneNumber', e.target.value)} 
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="tel" 
               />
-              <Button onClick={handleNext} disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^(\+39)?((3\d{8,9})|(0\d{6,10}))$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button onClick={handleNext} disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^\+39\d{10}$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
@@ -422,7 +467,7 @@ const MultiStepForm = () => {
                 Email
               </h2>
               <p className="text-text-secondary text-sm">
-                Ultimo passaggio per completare la richiesta
+                Per ricevere la risposta alla tua richiesta
               </p>
             </div>
             <div className="space-y-4">
@@ -433,7 +478,62 @@ const MultiStepForm = () => {
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="email" 
               />
-              <Button onClick={handleSubmit} disabled={!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button onClick={handleNext} disabled={!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+                Continua
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+            <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Torna indietro
+            </Button>
+          </div>;
+      case 9:
+        return <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-text-primary mb-4">
+                Catalogo Esclusivo
+              </h2>
+              <p className="text-text-secondary text-sm mb-6">
+                Vuoi ricevere in omaggio il nostro catalogo esclusivo? Potrai vedere con i tuoi occhi tutte le attrezzature che abbiamo a disposizione, in questo modo durante la consulenza sapremo perfettamente come aiutarti!
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Button 
+                onClick={() => handleCatalogAnswer(true)} 
+                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" 
+                size="lg"
+              >
+                Sì, voglio ricevere il catalogo
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Button 
+                onClick={() => handleCatalogAnswer(false)} 
+                variant="outline" 
+                className="w-full border-border text-text-primary hover:bg-input transition-[var(--transition-smooth)]" 
+                size="lg"
+              >
+                No, non mi interessa
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+            <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Torna indietro
+            </Button>
+          </div>;
+      case 10:
+        return <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-text-primary mb-2">
+                Conferma Invio
+              </h2>
+              <p className="text-text-secondary text-sm">
+                Ultimo passaggio per completare la richiesta
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Button onClick={handleSubmit} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
                 Invia Richiesta
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
@@ -465,7 +565,7 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="flex justify-center space-x-2 mt-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
             </div>
           </CardHeader>
           <CardContent>
