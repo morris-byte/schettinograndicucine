@@ -161,12 +161,16 @@ const MultiStepForm = () => {
     
     try {
       // Make webhook URL
-      const makeWebhookUrl = "https://hook.eu2.make.com/jog4x5m8xjw5gdpemv4ocgc4wwlx2dcm";
+      const makeWebhookUrl = "https://hook.eu2.make.com/dbeari9w8c7p9ft1dhizsuvrd2a98gqi";
       
       const payload = {
         ...formData,
         timestamp: new Date().toISOString(),
-        source: 'Schettino Form'
+        source: 'Schettino Form',
+        // Campi espliciti per Google Sheets
+        catalog_request: formData.wantsCatalog ? 'Sì' : 'No',
+        phone_formatted: formData.phoneNumber,
+        full_name: `${formData.firstName} ${formData.lastName}`.trim()
       };
       
       console.log('Invio dati a Make:', payload);
