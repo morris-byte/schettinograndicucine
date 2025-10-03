@@ -262,16 +262,18 @@ const MultiStepForm = () => {
               />
             </div>
           </CardHeader>
-          <CardContent className="text-center">
-            <div className="mb-2 mt-1">
-              <p className="text-white leading-relaxed mb-1 font-bold text-lg">
-                {getThankYouMessage()}
-              </p>
-              <p className="text-white text-sm mb-2">
-                Verrai contattato il prima possibile dal nostro team
-              </p>
+          <CardContent className="text-center flex flex-col justify-center min-h-[300px]">
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <p className="text-white leading-relaxed font-bold text-lg">
+                  {getThankYouMessage()}
+                </p>
+                <p className="text-white text-sm">
+                  Verrai contattato il prima possibile dal nostro team
+                </p>
+              </div>
               {thankYouType === 'success' && (
-                <div className="space-y-4">
+                <div className="space-y-4 pt-4">
                   <p className="text-white text-sm">
                     Nel frattempo puoi scoprire di più su di noi
                   </p>
