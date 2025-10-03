@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail, ExternalLink, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Star, Mail, ExternalLink, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 import confetti from 'canvas-confetti';
 import { trackFormSubmission, trackFormStep, trackButtonClick, initGA4 } from '@/config/analytics';
+import CompanyServices from '@/components/CompanyServices';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
   isRestaurateur: boolean | null;
@@ -725,38 +726,7 @@ const MultiStepForm = () => {
         </div>
 
         {/* Company Info Section */}
-        <div className="text-center">
-          <p className="text-white mb-4 text-base font-semibold leading-tight px-2">
-            Dal 1963 progettiamo, vendiamo e<br />
-            assistiamo attrezzature professionali per cucine
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-2xl mx-auto mb-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <Ruler className="w-6 h-6 text-primary" />
-              </div>
-              <p className="text-sm text-white font-medium">Progettazione</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <ShoppingCart className="w-6 h-6 text-primary" />
-              </div>
-              <p className="text-sm text-white font-medium">Vendita</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <Wrench className="w-6 h-6 text-primary" />
-              </div>
-              <p className="text-sm text-white font-medium">Assistenza</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
-                <FlaskConical className="w-6 h-6 text-primary" />
-              </div>
-              <p className="text-sm text-white font-medium">SchettinoLab</p>
-            </div>
-          </div>
-        </div>
+        <CompanyServices />
       </div>
     </div>;
 };
