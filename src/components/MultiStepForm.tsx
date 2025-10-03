@@ -284,28 +284,30 @@ const MultiStepForm = () => {
             </div>
           </CardHeader>
           <CardContent className="text-center flex flex-col justify-center min-h-[300px]">
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <p className="text-white leading-relaxed font-bold text-lg">
+            <div className="space-y-6">
+              {/* Header - Main thank you message */}
+              <div className="space-y-2">
+                <h2 className="text-white leading-tight font-bold text-xl">
                   {getThankYouMessage()}
-                </p>
-                <p className="text-white text-sm">
+                </h2>
+                <p className="text-white text-base font-medium">
                   Verrai contattato il prima possibile dal nostro team
                 </p>
-              </div>
-              {thankYouType === 'success' && (
-                <div className="space-y-4 pt-4">
+                {thankYouType === 'success' && (
                   <p className="text-white text-sm">
                     Nel frattempo puoi scoprire di più su di noi
                   </p>
-                  <Button 
-                    onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
-                    className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Visita il nostro sito
-                  </Button>
-                </div>
+                )}
+              </div>
+              
+              {thankYouType === 'success' && (
+                <Button 
+                  onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
+                  className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Visita il nostro sito
+                </Button>
               )}
             </div>
           </CardContent>
