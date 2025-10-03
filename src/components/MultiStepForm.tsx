@@ -444,7 +444,7 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <Input 
-                placeholder="Il tuo numero di telefono (10 cifre, +39 aggiunto automaticamente)" 
+                placeholder="Il tuo numero di telefono" 
                 value={formData.phoneNumber} 
                 onChange={e => handleInputChange('phoneNumber', e.target.value)} 
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
