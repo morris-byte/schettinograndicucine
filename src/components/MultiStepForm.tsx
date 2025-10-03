@@ -21,7 +21,6 @@ interface FormData {
   email: string;
   wantsCatalog: boolean | null;
   privacyConsent: boolean;
-  city: string;
 }
 const MultiStepForm = () => {
   const { toast } = useToast();
@@ -37,8 +36,7 @@ const MultiStepForm = () => {
     phoneNumber: '',
     email: '',
     wantsCatalog: null,
-    privacyConsent: false,
-    city: ''
+    privacyConsent: false
   });
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
@@ -61,11 +59,11 @@ const MultiStepForm = () => {
             setFormData(prev => ({ ...prev, firstName: input.value }));
           } else if (name?.includes('cognome') || input.placeholder?.toLowerCase().includes('cognome')) {
             setFormData(prev => ({ ...prev, lastName: input.value }));
-          } else if (name?.includes('telefono') || input.type === 'tel') {
-            setFormData(prev => ({ ...prev, phoneNumber: input.value }));
-          } else if (name?.includes('città') || name?.includes('city') || input.placeholder?.toLowerCase().includes('città')) {
-            setFormData(prev => ({ ...prev, city: input.value }));
-          }
+                 } else if (name?.includes('telefono') || input.type === 'tel') {
+                   setFormData(prev => ({ ...prev, phoneNumber: input.value }));
+                 } else if (name?.includes('zona') || name?.includes('zone') || input.placeholder?.toLowerCase().includes('zona')) {
+                   setFormData(prev => ({ ...prev, restaurantZone: input.value }));
+                 }
         }
       });
     };
@@ -411,7 +409,7 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <Input placeholder="Es. Napoli, Salerno, Caserta..." value={formData.restaurantZone} onChange={e => handleInputChange('restaurantZone', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+              <Input name="restaurantZone" placeholder="Es. Napoli, Salerno, Caserta..." value={formData.restaurantZone} onChange={e => handleInputChange('restaurantZone', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" autoComplete="address-level2" />
               <Button onClick={handleNext} disabled={!formData.restaurantZone.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
@@ -539,35 +537,6 @@ const MultiStepForm = () => {
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
-                Città
-              </h2>
-              <p className="text-text-secondary text-sm">
-                In quale città si trova il tuo ristorante?
-              </p>
-            </div>
-            <div className="space-y-4">
-              <Input 
-                name="city" 
-                placeholder="La tua città" 
-                value={formData.city} 
-                onChange={e => handleInputChange('city', e.target.value)} 
-                className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
-                autoComplete="address-level2"
-              />
-              <Button onClick={handleNext} disabled={!formData.city.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
-                Continua
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-            <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Torna indietro
-            </Button>
-          </div>;
-      case 9:
-        return <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-text-primary mb-2">
                 Email
               </h2>
               <p className="text-text-secondary text-sm">
@@ -594,7 +563,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 10:
+      case 9:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-4">
@@ -628,7 +597,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 11:
+      case 10:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
@@ -709,7 +678,7 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="flex justify-center space-x-2 mt-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
             </div>
           </CardHeader>
           <CardContent>
