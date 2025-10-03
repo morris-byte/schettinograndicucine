@@ -21,6 +21,7 @@ interface FormData {
   email: string;
   wantsCatalog: boolean | null;
   privacyConsent: boolean;
+  city: string;
 }
 const MultiStepForm = () => {
   const { toast } = useToast();
@@ -36,7 +37,8 @@ const MultiStepForm = () => {
     phoneNumber: '',
     email: '',
     wantsCatalog: null,
-    privacyConsent: false
+    privacyConsent: false,
+    city: ''
   });
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
@@ -45,6 +47,33 @@ const MultiStepForm = () => {
   useEffect(() => {
     initGA4();
   }, []);
+
+  // Auto-fill form fields using browser autofill
+  useEffect(() => {
+    const autoFillForm = () => {
+      // Try to detect if browser has autofill data
+      const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"]');
+      inputs.forEach((input: any) => {
+        if (input.value && input.value.trim() !== '') {
+          const name = input.getAttribute('name') || input.getAttribute('placeholder')?.toLowerCase();
+          
+          if (name?.includes('nome') || input.placeholder?.toLowerCase().includes('nome')) {
+            setFormData(prev => ({ ...prev, firstName: input.value }));
+          } else if (name?.includes('cognome') || input.placeholder?.toLowerCase().includes('cognome')) {
+            setFormData(prev => ({ ...prev, lastName: input.value }));
+          } else if (name?.includes('telefono') || input.type === 'tel') {
+            setFormData(prev => ({ ...prev, phoneNumber: input.value }));
+          } else if (name?.includes('città') || name?.includes('city') || input.placeholder?.toLowerCase().includes('città')) {
+            setFormData(prev => ({ ...prev, city: input.value }));
+          }
+        }
+      });
+    };
+
+    // Run autofill detection after a short delay
+    const timer = setTimeout(autoFillForm, 100);
+    return () => clearTimeout(timer);
+  }, [currentStep]);
   const handleAnswer = (answer: boolean, field: 'isRestaurateur' | 'isInCampania') => {
     setFormData(prev => ({
       ...prev,
@@ -283,8 +312,8 @@ const MultiStepForm = () => {
               />
             </div>
           </CardHeader>
-          <CardContent className="text-center flex flex-col justify-start pt-12 min-h-[300px]">
-            <div className="space-y-6">
+          <CardContent className="text-center flex flex-col justify-between min-h-[300px] py-6">
+            <div className="space-y-3">
               {/* Header - Main thank you message */}
               <div className="space-y-2">
                 <h2 className="text-white leading-tight font-bold text-lg md:text-xl whitespace-nowrap">
@@ -300,17 +329,17 @@ const MultiStepForm = () => {
                   </p>
                 )}
               </div>
-              
-              {thankYouType === 'success' && (
-                <Button 
-                  onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
-                  className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Visita il nostro sito
-                </Button>
-              )}
             </div>
+            
+            {thankYouType === 'success' && (
+              <Button 
+                onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
+                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Visita il nostro sito
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>;
@@ -449,8 +478,22 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <Input placeholder="Nome" value={formData.firstName} onChange={e => handleInputChange('firstName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
-                <Input placeholder="Cognome" value={formData.lastName} onChange={e => handleInputChange('lastName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+                <Input 
+                  name="firstName" 
+                  placeholder="Nome" 
+                  value={formData.firstName} 
+                  onChange={e => handleInputChange('firstName', e.target.value)} 
+                  className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
+                  autoComplete="given-name"
+                />
+                <Input 
+                  name="lastName" 
+                  placeholder="Cognome" 
+                  value={formData.lastName} 
+                  onChange={e => handleInputChange('lastName', e.target.value)} 
+                  className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
+                  autoComplete="family-name"
+                />
               </div>
               <Button onClick={handleNext} disabled={!formData.firstName.trim() || !formData.lastName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
@@ -474,11 +517,13 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <Input 
+                name="phoneNumber" 
                 placeholder="Il tuo numero di telefono" 
                 value={formData.phoneNumber} 
                 onChange={e => handleInputChange('phoneNumber', e.target.value)} 
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="tel" 
+                autoComplete="tel"
               />
               <Button onClick={handleNext} disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^\+39\d{10}$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
@@ -494,6 +539,35 @@ const MultiStepForm = () => {
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
+                Città
+              </h2>
+              <p className="text-text-secondary text-sm">
+                In quale città si trova il tuo ristorante?
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Input 
+                name="city" 
+                placeholder="La tua città" 
+                value={formData.city} 
+                onChange={e => handleInputChange('city', e.target.value)} 
+                className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
+                autoComplete="address-level2"
+              />
+              <Button onClick={handleNext} disabled={!formData.city.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+                Continua
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+            <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Torna indietro
+            </Button>
+          </div>;
+      case 9:
+        return <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-text-primary mb-2">
                 Email
               </h2>
               <p className="text-text-secondary text-sm">
@@ -502,11 +576,13 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <Input 
+                name="email" 
                 placeholder="La tua email (es. nome@esempio.it)" 
                 value={formData.email} 
                 onChange={e => handleInputChange('email', e.target.value)} 
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="email" 
+                autoComplete="email"
               />
               <Button onClick={handleNext} disabled={!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
@@ -518,7 +594,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 9:
+      case 10:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-4">
@@ -552,7 +628,7 @@ const MultiStepForm = () => {
               Torna indietro
             </Button>
           </div>;
-      case 10:
+      case 11:
         return <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text-primary mb-2">
@@ -633,7 +709,7 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="flex justify-center space-x-2 mt-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
             </div>
           </CardHeader>
           <CardContent>
