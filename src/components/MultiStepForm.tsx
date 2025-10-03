@@ -560,6 +560,16 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
+              <Button 
+                onClick={handleSubmit} 
+                disabled={!formData.privacyConsent}
+                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
+                size="lg"
+              >
+                Invia Richiesta
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+              
               <div className="flex items-start space-x-3 p-4 bg-input rounded-lg border border-border">
                 <input
                   type="checkbox"
@@ -571,25 +581,16 @@ const MultiStepForm = () => {
                 <label htmlFor="privacyConsent" className="text-sm text-text-primary leading-relaxed">
                   Accetto il trattamento dei dati personali secondo la{' '}
                   <a 
-                    href="https://schettinograndicucine-ten.vercel.app/privacy" 
+                    href="https://schettinograndicucine-ten.vercel.app/privacy.html" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline"
+                    className="text-primary hover:text-primary hover:underline underline-offset-2 transition-colors"
                   >
                     Privacy Policy
                   </a>
                   . I dati saranno utilizzati esclusivamente per rispondere alla tua richiesta e fornire i servizi richiesti.
                 </label>
               </div>
-              <Button 
-                onClick={handleSubmit} 
-                disabled={!formData.privacyConsent}
-                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
-                size="lg"
-              >
-                Invia Richiesta
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
             </div>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
               <ChevronLeft className="w-4 h-4 mr-2" />
