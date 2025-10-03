@@ -311,7 +311,7 @@ const MultiStepForm = () => {
               />
             </div>
           </CardHeader>
-          <CardContent className="text-center flex flex-col justify-between min-h-[300px] py-6">
+          <CardContent className="text-center flex flex-col justify-between min-h-[300px] py-4">
             <div className="space-y-3">
               {/* Header - Main thank you message */}
               <div className="space-y-2">
