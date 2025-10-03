@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail, ExternalLink } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Ruler, ShoppingCart, Wrench, FlaskConical, Star, Mail, ExternalLink, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 import confetti from 'canvas-confetti';
@@ -283,7 +283,7 @@ const MultiStepForm = () => {
               />
             </div>
           </CardHeader>
-          <CardContent className="text-center flex flex-col justify-center min-h-[300px]">
+          <CardContent className="text-center flex flex-col justify-start pt-8 min-h-[300px]">
             <div className="space-y-6">
               {/* Header - Main thank you message */}
               <div className="space-y-2">
@@ -573,20 +573,28 @@ const MultiStepForm = () => {
               </Button>
               
               <div className="flex items-start space-x-3 p-4 bg-input rounded-lg border border-border">
-                <input
-                  type="checkbox"
-                  id="privacyConsent"
-                  checked={formData.privacyConsent}
-                  onChange={(e) => handleInputChange('privacyConsent', e.target.checked)}
-                  className="mt-1 w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary"
-                />
-                <label htmlFor="privacyConsent" className="text-sm text-text-primary leading-relaxed">
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('privacyConsent', !formData.privacyConsent)}
+                  className={`mt-1 w-4 h-4 border-2 rounded flex items-center justify-center transition-colors ${
+                    formData.privacyConsent 
+                      ? 'bg-primary border-primary text-white' 
+                      : 'bg-input border-border hover:border-primary'
+                  }`}
+                >
+                  {formData.privacyConsent && <Check className="w-3 h-3" />}
+                </button>
+                <label 
+                  onClick={() => handleInputChange('privacyConsent', !formData.privacyConsent)}
+                  className="text-sm text-text-primary leading-relaxed cursor-pointer"
+                >
                   Accetto il trattamento dei dati personali secondo la{' '}
                   <a 
                     href="https://schettinograndicucine-ten.vercel.app/privacy.html" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:text-primary hover:underline underline-offset-2 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     Privacy Policy
                   </a>
