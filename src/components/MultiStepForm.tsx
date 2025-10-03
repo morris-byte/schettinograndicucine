@@ -287,11 +287,12 @@ const MultiStepForm = () => {
             <div className="space-y-6">
               {/* Header - Main thank you message */}
               <div className="space-y-2">
-                <h2 className="text-white leading-tight font-bold text-xl">
+                <h2 className="text-white leading-tight font-bold text-lg md:text-xl whitespace-nowrap">
                   {getThankYouMessage()}
                 </h2>
-                <p className="text-white text-base font-medium">
-                  Verrai contattato il prima possibile dal nostro team
+                <p className="text-white text-sm md:text-base font-medium leading-relaxed">
+                  Verrai contattato il prima<br />
+                  possibile dal nostro team
                 </p>
                 {thankYouType === 'success' && (
                   <p className="text-white text-sm">
@@ -576,14 +577,14 @@ const MultiStepForm = () => {
                 <button
                   type="button"
                   onClick={() => handleInputChange('privacyConsent', !formData.privacyConsent)}
-                  className={`mt-1 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all duration-200 touch-manipulation ${
+                  className={`mt-1 w-6 h-6 border-2 rounded-sm flex items-center justify-center transition-all duration-200 touch-manipulation ${
                     formData.privacyConsent 
                       ? 'bg-primary border-primary text-white shadow-sm' 
-                      : 'bg-input border-border hover:border-primary hover:bg-input/80 active:scale-95'
+                      : 'bg-white border-gray-300 hover:border-primary hover:bg-gray-50 active:scale-95'
                   }`}
-                  style={{ minWidth: '20px', minHeight: '20px' }}
+                  style={{ minWidth: '24px', minHeight: '24px' }}
                 >
-                  {formData.privacyConsent && <Check className="w-3.5 h-3.5" />}
+                  {formData.privacyConsent && <Check className="w-4 h-4" />}
                 </button>
                 <label 
                   onClick={() => handleInputChange('privacyConsent', !formData.privacyConsent)}
@@ -680,10 +681,11 @@ const MultiStepForm = () => {
 
         {/* Company Info Section */}
         <div className="text-center">
-          <p className="text-white mb-4 text-lg font-semibold">
-            Dal 1963 progettiamo, vendiamo e assistiamo attrezzature professionali per cucine
+          <p className="text-white mb-4 text-base font-semibold leading-tight px-2">
+            Dal 1963 progettiamo, vendiamo e<br />
+            assistiamo attrezzature professionali per cucine
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 max-w-2xl mx-auto mb-6">
             <div className="text-center">
               <div className="w-12 h-12 bg-card border-2 border-primary rounded-lg mx-auto mb-2 flex items-center justify-center">
                 <Ruler className="w-6 h-6 text-primary" />
