@@ -307,7 +307,7 @@ const MultiStepForm = () => {
               <Button onClick={() => {
                 trackButtonClick('No, non sono un ristoratore', 'Step 1');
                 handleAnswer(false, 'isRestaurateur');
-              }} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
+              }} variant="outline" className="w-full border-border text-white" size="lg">
                 No, non sono un ristoratore
               </Button>
             </div>
@@ -332,7 +332,7 @@ const MultiStepForm = () => {
               <Button onClick={() => {
                 trackButtonClick('No, si trova fuori dalla Campania', 'Step 2');
                 handleAnswer(false, 'isInCampania');
-              }} variant="outline" className="w-full border-border hover:bg-secondary text-white transition-[var(--transition-smooth)]" size="lg">
+              }} variant="outline" className="w-full border-border text-white" size="lg">
                 No, si trova fuori dalla Campania
               </Button>
             </div>
@@ -510,7 +510,7 @@ const MultiStepForm = () => {
               <Button 
                 onClick={() => handleCatalogAnswer(false)} 
                 variant="outline" 
-                className="w-full border-border text-text-primary hover:bg-input transition-[var(--transition-smooth)]" 
+                className="w-full border-border text-text-primary" 
                 size="lg"
               >
                 No, non mi interessa
