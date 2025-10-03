@@ -20,6 +20,7 @@ interface FormData {
   phoneNumber: string;
   email: string;
   wantsCatalog: boolean | null;
+  privacyConsent: boolean;
 }
 const MultiStepForm = () => {
   const { toast } = useToast();
@@ -34,7 +35,8 @@ const MultiStepForm = () => {
     lastName: '',
     phoneNumber: '',
     email: '',
-    wantsCatalog: null
+    wantsCatalog: null,
+    privacyConsent: false
   });
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
@@ -72,8 +74,17 @@ const MultiStepForm = () => {
     
     setCurrentStep(prev => prev + 1);
   };
-  const handleInputChange = (field: keyof FormData, value: string) => {
+  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     let processedValue = value;
+    
+    // Handle boolean values directly
+    if (typeof value === 'boolean') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+      return;
+    }
     
     // Process phone number input
     if (field === 'phoneNumber') {
@@ -159,6 +170,15 @@ const MultiStepForm = () => {
       return; // Invalid email
     }
     
+    // Validate privacy consent
+    if (!formData.privacyConsent) {
+      toast({
+        description: "È necessario accettare la privacy policy per procedere",
+        duration: 3000,
+      });
+      return; // Privacy consent required
+    }
+    
     try {
       // Make webhook URL
       const makeWebhookUrl = "https://hook.eu2.make.com/dbeari9w8c7p9ft1dhizsuvrd2a98gqi";
@@ -170,7 +190,8 @@ const MultiStepForm = () => {
         // Campi espliciti per Google Sheets
         catalog_request: formData.wantsCatalog ? 'Sì' : 'No',
         phone_formatted: formData.phoneNumber,
-        full_name: `${formData.firstName} ${formData.lastName}`.trim()
+        full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        privacy_consent: formData.privacyConsent ? 'Sì' : 'No'
       };
       
       console.log('Invio dati a Make:', payload);
@@ -539,7 +560,33 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <Button onClick={handleSubmit} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]" size="lg">
+              <div className="flex items-start space-x-3 p-4 bg-input rounded-lg border border-border">
+                <input
+                  type="checkbox"
+                  id="privacyConsent"
+                  checked={formData.privacyConsent}
+                  onChange={(e) => handleInputChange('privacyConsent', e.target.checked)}
+                  className="mt-1 w-4 h-4 text-primary bg-input border-border rounded focus:ring-primary"
+                />
+                <label htmlFor="privacyConsent" className="text-sm text-text-primary leading-relaxed">
+                  Accetto il trattamento dei dati personali secondo la{' '}
+                  <a 
+                    href="https://schettinograndicucine-ten.vercel.app/privacy" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    Privacy Policy
+                  </a>
+                  . I dati saranno utilizzati esclusivamente per rispondere alla tua richiesta e fornire i servizi richiesti.
+                </label>
+              </div>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={!formData.privacyConsent}
+                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
+                size="lg"
+              >
                 Invia Richiesta
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
