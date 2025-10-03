@@ -576,25 +576,28 @@ const MultiStepForm = () => {
                 <button
                   type="button"
                   onClick={() => handleInputChange('privacyConsent', !formData.privacyConsent)}
-                  className={`mt-1 w-4 h-4 border-2 rounded flex items-center justify-center transition-colors ${
+                  className={`mt-1 w-5 h-5 border-2 rounded-sm flex items-center justify-center transition-all duration-200 touch-manipulation ${
                     formData.privacyConsent 
-                      ? 'bg-primary border-primary text-white' 
-                      : 'bg-input border-border hover:border-primary'
+                      ? 'bg-primary border-primary text-white shadow-sm' 
+                      : 'bg-input border-border hover:border-primary hover:bg-input/80 active:scale-95'
                   }`}
+                  style={{ minWidth: '20px', minHeight: '20px' }}
                 >
-                  {formData.privacyConsent && <Check className="w-3 h-3" />}
+                  {formData.privacyConsent && <Check className="w-3.5 h-3.5" />}
                 </button>
                 <label 
                   onClick={() => handleInputChange('privacyConsent', !formData.privacyConsent)}
-                  className="text-sm text-text-primary leading-relaxed cursor-pointer"
+                  className="text-sm text-text-primary leading-relaxed cursor-pointer select-none touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
                 >
                   Accetto il trattamento dei dati personali secondo la{' '}
                   <a 
                     href="https://schettinograndicucine-ten.vercel.app/privacy.html" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-primary hover:text-primary hover:underline underline-offset-2 transition-colors"
+                    className="text-primary hover:text-primary hover:underline underline-offset-2 transition-colors touch-manipulation"
                     onClick={(e) => e.stopPropagation()}
+                    style={{ touchAction: 'manipulation' }}
                   >
                     Privacy Policy
                   </a>
