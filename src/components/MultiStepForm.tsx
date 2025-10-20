@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,7 +7,25 @@ import { ChevronRight, ChevronLeft, Star, Mail, ExternalLink, Check } from 'luci
 import { useToast } from '@/hooks/use-toast';
 import schettinoLogo from '@/assets/schettino-logo.png';
 import confetti from 'canvas-confetti';
-import { trackFormSubmission, trackFormStep, trackButtonClick, initGA4 } from '@/config/analytics';
+import { 
+  trackFormSubmission, 
+  trackFormStep, 
+  trackButtonClick, 
+  initGA4,
+  trackFormError,
+  trackFormAbandon,
+  trackFormCompletionTime,
+  trackBackButton,
+  trackOutboundLink,
+  trackScrollDepth,
+  trackTimeOnPage,
+  trackUTMParameters,
+  trackFieldInteraction,
+  trackNetworkError,
+  trackDeviceInfo,
+  trackAutofillUsage,
+  trackCoreWebVitals
+} from '@/config/analytics';
 import CompanyServices from '@/components/CompanyServices';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
 interface FormData {
@@ -41,32 +59,117 @@ const MultiStepForm = () => {
   });
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
+  
+  // Tracking refs for time measurements
+  const formStartTimeRef = useRef<number>(Date.now());
+  const stepStartTimeRef = useRef<number>(Date.now());
+  const hasTrackedAbandonRef = useRef<boolean>(false);
+  
+  // Advanced tracking refs
+  const pageStartTimeRef = useRef<number>(Date.now());
+  const scrollDepthsTrackedRef = useRef<Set<number>>(new Set());
+  const autofillDetectedRef = useRef<Set<string>>(new Set());
 
-  // Initialize GA4 on component mount
+  // Initialize GA4 and advanced tracking on component mount
   useEffect(() => {
     initGA4();
+    
+    // Reset tracking timers
+    formStartTimeRef.current = Date.now();
+    stepStartTimeRef.current = Date.now();
+    pageStartTimeRef.current = Date.now();
+    
+    // Track UTM parameters
+    trackUTMParameters();
+    
+    // Track device info
+    trackDeviceInfo();
+    
+    // Set up scroll tracking
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = Math.round((scrollTop / documentHeight) * 100);
+      
+      // Track scroll depths at 25%, 50%, 75%, 90%
+      [25, 50, 75, 90].forEach(depth => {
+        if (scrollPercent >= depth && !scrollDepthsTrackedRef.current.has(depth)) {
+          trackScrollDepth(depth, 'Home');
+          scrollDepthsTrackedRef.current.add(depth);
+        }
+      });
+    };
+    
+    // Set up time on page tracking (every 30 seconds)
+    const timeInterval = setInterval(() => {
+      const timeOnPage = (Date.now() - pageStartTimeRef.current) / 1000;
+      trackTimeOnPage(timeOnPage, 'Home');
+    }, 30000);
+    
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearInterval(timeInterval);
+    };
   }, []);
+
+  // Track form abandonment when user leaves the page
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only track abandon if form was started but not completed
+      if (!showThankYou && currentStep > 1 && !hasTrackedAbandonRef.current) {
+        const timeSpent = (Date.now() - formStartTimeRef.current) / 1000;
+        const stepName = getStepName(currentStep);
+        trackFormAbandon(currentStep, stepName, timeSpent);
+        hasTrackedAbandonRef.current = true;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [currentStep, showThankYou]);
+
+  // Reset step start time when step changes
+  useEffect(() => {
+    stepStartTimeRef.current = Date.now();
+  }, [currentStep]);
 
   // Auto-fill form fields using browser autofill
   useEffect(() => {
     const autoFillForm = () => {
       // Try to detect if browser has autofill data
       const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"]');
+      const autofillFields: string[] = [];
+      
       inputs.forEach((input: any) => {
         if (input.value && input.value.trim() !== '') {
           const name = input.getAttribute('name') || input.getAttribute('placeholder')?.toLowerCase();
           
           if (name?.includes('nome') || input.placeholder?.toLowerCase().includes('nome')) {
             setFormData(prev => ({ ...prev, firstName: input.value }));
+            autofillFields.push('firstName');
           } else if (name?.includes('cognome') || input.placeholder?.toLowerCase().includes('cognome')) {
             setFormData(prev => ({ ...prev, lastName: input.value }));
-                 } else if (name?.includes('telefono') || input.type === 'tel') {
-                   setFormData(prev => ({ ...prev, phoneNumber: input.value }));
-                 } else if (name?.includes('zona') || name?.includes('zone') || input.placeholder?.toLowerCase().includes('zona')) {
-                   setFormData(prev => ({ ...prev, restaurantZone: input.value }));
-                 }
+            autofillFields.push('lastName');
+          } else if (name?.includes('telefono') || input.type === 'tel') {
+            setFormData(prev => ({ ...prev, phoneNumber: input.value }));
+            autofillFields.push('phoneNumber');
+          } else if (name?.includes('zona') || name?.includes('zone') || input.placeholder?.toLowerCase().includes('zona')) {
+            setFormData(prev => ({ ...prev, restaurantZone: input.value }));
+            autofillFields.push('restaurantZone');
+          }
         }
       });
+      
+      // Track autofill usage if detected
+      if (autofillFields.length > 0) {
+        trackAutofillUsage(autofillFields);
+      }
     };
 
     // Run autofill detection after a short delay
@@ -102,6 +205,15 @@ const MultiStepForm = () => {
     
     setCurrentStep(prev => prev + 1);
   };
+  // Helper functions for field tracking
+  const handleFieldFocus = (fieldName: string) => {
+    trackFieldInteraction(fieldName, 'focus', currentStep);
+  };
+
+  const handleFieldBlur = (fieldName: string) => {
+    trackFieldInteraction(fieldName, 'blur', currentStep);
+  };
+
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     let processedValue = value;
     
@@ -152,6 +264,7 @@ const MultiStepForm = () => {
         return phoneRegex.test(compact);
       };
       if (!isValidPhone(processedValue)) {
+        trackFormError('inline_validation', 'Invalid phone number format while typing', currentStep);
         toast({
           description: "Il numero deve avere esattamente 10 cifre dopo +39",
           duration: 2000,
@@ -163,6 +276,7 @@ const MultiStepForm = () => {
     if (field === 'email' && value.includes('@')) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
+        trackFormError('inline_validation', 'Invalid email format while typing', currentStep);
         toast({
           description: "Formato email non valido. Usa nome@esempio.it",
           duration: 2000,
@@ -170,10 +284,35 @@ const MultiStepForm = () => {
       }
     }
   };
+  // Helper function to get step name
+  const getStepName = (step: number): string => {
+    const stepNames: { [key: number]: string } = {
+      1: 'Restaurateur Question',
+      2: 'Campania Question',
+      3: 'Restaurant Zone',
+      4: 'Restaurant Name',
+      5: 'Equipment Type',
+      6: 'Personal Data',
+      7: 'Phone Number',
+      8: 'Email',
+      9: 'Catalog Question',
+      10: 'Confirmation'
+    };
+    return stepNames[step] || 'Unknown Step';
+  };
+
   const handleNext = () => {
     setCurrentStep(prev => prev + 1);
   };
+  
   const handleBack = () => {
+    const fromStep = currentStep;
+    const toStep = currentStep - 1;
+    const stepName = getStepName(fromStep);
+    
+    // Track back button click
+    trackBackButton(fromStep, toStep, stepName);
+    
     setCurrentStep(prev => prev - 1);
   };
 
@@ -185,6 +324,7 @@ const MultiStepForm = () => {
       return phoneRegex.test(compact);
     };
     if (!isValidPhone(formData.phoneNumber)) {
+      trackFormError('validation_error', 'Invalid phone number format', currentStep);
       toast({
         description: "Il numero deve avere esattamente 10 cifre dopo +39",
         duration: 3000,
@@ -195,11 +335,13 @@ const MultiStepForm = () => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
+      trackFormError('validation_error', 'Invalid email format', currentStep);
       return; // Invalid email
     }
     
     // Validate privacy consent
     if (!formData.privacyConsent) {
+      trackFormError('validation_error', 'Privacy consent not accepted', currentStep);
       toast({
         description: "È necessario accettare la privacy policy per procedere",
         duration: 3000,
@@ -236,8 +378,16 @@ const MultiStepForm = () => {
       console.log('Response status:', response.status);
       console.log('Response ok:', response.ok);
       
+      // Track network error if request failed
+      if (!response.ok) {
+        trackNetworkError('webhook_failure', makeWebhookUrl, response.status, `HTTP ${response.status}`);
+      }
+      
       if (response.ok) {
         console.log('Dati inviati a Make con successo.');
+        
+        // Calculate total completion time
+        const totalTimeSeconds = (Date.now() - formStartTimeRef.current) / 1000;
         
         // Send email notification to commerciali
         try {
@@ -253,9 +403,13 @@ const MultiStepForm = () => {
             console.log('Email di notifica inviata con successo');
           } else {
             console.log('Errore invio email notifica, ma form completato comunque');
+            trackFormError('email_error', 'Failed to send notification email', currentStep);
+            trackNetworkError('email_failure', 'supabase-email-endpoint', emailResponse.status, 'Email notification failed');
           }
         } catch (emailError) {
           console.log('Errore invio email notifica:', emailError);
+          trackFormError('email_error', String(emailError), currentStep);
+          trackNetworkError('email_exception', 'supabase-email-endpoint', undefined, String(emailError));
         }
         
         
@@ -267,8 +421,12 @@ const MultiStepForm = () => {
         });
         
         
-        // Track form submission
+        // Track form submission and completion time
         trackFormSubmission(formData);
+        trackFormCompletionTime(totalTimeSeconds, formData);
+        
+        // Mark that form was completed (don't track abandon)
+        hasTrackedAbandonRef.current = true;
         
         toast({
           title: "Preventivo inviato!",
@@ -282,6 +440,8 @@ const MultiStepForm = () => {
       
     } catch (error) {
       console.error('Errore invio form:', error);
+      trackFormError('submission_error', String(error), currentStep);
+      trackNetworkError('submission_exception', makeWebhookUrl, undefined, String(error));
       toast({
         title: "Errore",
         description: "Si è verificato un errore. Riprova o contattaci direttamente.",
@@ -292,17 +452,17 @@ const MultiStepForm = () => {
   const getThankYouMessage = () => {
     switch (thankYouType) {
       case 'not-restaurateur':
-        return "Schettino Grandi Cucine si occupa della distribuzione di attrezzatura da cucina professionale per ristoranti e hotel. Tuttavia, non ci interfacciamo con i privati e per questo motivo non possiamo aiutarti con la tua richiesta. Grazie per averci scritto!";
+        return "Ci occupiamo di attrezzature professionali per ristoranti e hotel. Non operiamo con privati. Grazie per averci scritto!";
       case 'not-campania':
-        return "Schettino Grandi Cucine si occupa della distribuzione di attrezzatura da cucina professionale per ristoranti e hotel in Campania e non opera al di fuori della regione. Grazie per averci scritto!";
+        return "Operiamo esclusivamente in Campania. Grazie per averci scritto!";
       default:
         return "Grazie per aver compilato il modulo!";
     }
   };
   if (showThankYou) {
     return <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-black shadow-[var(--shadow-form)]">
-          <CardHeader className="text-center">
+        <Card className="w-full max-w-md bg-black shadow-[var(--shadow-form)] mx-auto">
+          <CardHeader className="text-center px-4 py-6">
             <div className="mb-1">
               <img 
                 src={schettinoLogo} 
@@ -311,19 +471,19 @@ const MultiStepForm = () => {
               />
             </div>
           </CardHeader>
-          <CardContent className="text-center flex flex-col justify-between min-h-[300px] py-4">
-            <div className="space-y-3">
+          <CardContent className="text-center flex flex-col justify-between min-h-[280px] py-4 px-4">
+            <div className="space-y-4">
               {/* Header - Main thank you message */}
-              <div className="space-y-2">
-                <h2 className="text-white leading-tight font-bold text-lg md:text-xl whitespace-nowrap">
+              <div className="space-y-3">
+                <h2 className="text-white leading-relaxed font-bold text-sm md:text-base text-center break-words-safe text-pretty">
                   {getThankYouMessage()}
                 </h2>
-                <p className="text-white text-sm md:text-base font-medium leading-relaxed">
+                <p className="text-white text-sm md:text-base font-medium leading-relaxed text-center">
                   Verrai contattato il prima<br />
                   possibile dal nostro team
                 </p>
                 {thankYouType === 'success' && (
-                  <p className="text-white text-sm">
+                  <p className="text-white text-sm text-center">
                     Nel frattempo puoi scoprire di più su di noi
                   </p>
                 )}
@@ -331,13 +491,18 @@ const MultiStepForm = () => {
             </div>
             
             {thankYouType === 'success' && (
-              <Button 
-                onClick={() => window.open('https://www.schettinograndicucine.com/', '_blank')}
-                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]"
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Visita il nostro sito
-              </Button>
+              <div>
+                <Button 
+                  onClick={() => {
+                    trackOutboundLink('https://www.schettinograndicucine.com/', 'Visita il nostro sito', 'thank-you-page');
+                    window.open('https://www.schettinograndicucine.com/', '_blank');
+                  }}
+                  className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)]"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Visita il nostro sito
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -410,7 +575,16 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <Input name="restaurantZone" placeholder="Es. Napoli, Salerno, Caserta..." value={formData.restaurantZone} onChange={e => handleInputChange('restaurantZone', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" autoComplete="address-level2" />
+              <Input 
+                name="restaurantZone" 
+                placeholder="Es. Napoli, Salerno, Caserta..." 
+                value={formData.restaurantZone} 
+                onChange={e => handleInputChange('restaurantZone', e.target.value)}
+                onFocus={() => handleFieldFocus('restaurantZone')}
+                onBlur={() => handleFieldBlur('restaurantZone')}
+                className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
+                autoComplete="address-level2" 
+              />
               <Button onClick={handleNext} disabled={!formData.restaurantZone.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
@@ -519,7 +693,9 @@ const MultiStepForm = () => {
                 name="phoneNumber" 
                 placeholder="Il tuo numero di telefono" 
                 value={formData.phoneNumber} 
-                onChange={e => handleInputChange('phoneNumber', e.target.value)} 
+                onChange={e => handleInputChange('phoneNumber', e.target.value)}
+                onFocus={() => handleFieldFocus('phoneNumber')}
+                onBlur={() => handleFieldBlur('phoneNumber')}
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="tel" 
                 autoComplete="tel"
@@ -549,7 +725,9 @@ const MultiStepForm = () => {
                 name="email" 
                 placeholder="La tua email (es. nome@esempio.it)" 
                 value={formData.email} 
-                onChange={e => handleInputChange('email', e.target.value)} 
+                onChange={e => handleInputChange('email', e.target.value)}
+                onFocus={() => handleFieldFocus('email')}
+                onBlur={() => handleFieldBlur('email')}
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="email" 
                 autoComplete="email"

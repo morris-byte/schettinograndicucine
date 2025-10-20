@@ -129,3 +129,19 @@ All colors MUST be HSL.
     transform: translateX(-100%);
   }
 }
+
+/* Prevent text overflow and ensure proper text wrapping */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  
+  .break-words-safe {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+}
