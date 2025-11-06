@@ -587,7 +587,7 @@ const MultiStepForm = () => {
                 Indica la città o paese in cui operi
               </p>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
               <Input 
                 id="restaurantZone"
                 name="restaurantZone" 
@@ -599,11 +599,11 @@ const MultiStepForm = () => {
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 autoComplete="address-level2" 
               />
-              <Button onClick={handleNext} disabled={!formData.restaurantZone.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button type="submit" disabled={!formData.restaurantZone.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
-            </div>
+            </form>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
               <ChevronLeft className="w-4 h-4 mr-2" />
               Torna indietro
@@ -619,7 +619,7 @@ const MultiStepForm = () => {
                 Aiutaci a conoscerti meglio
               </p>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
               <Input 
                 id="restaurantName"
                 name="restaurantName"
@@ -629,11 +629,11 @@ const MultiStepForm = () => {
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 autoComplete="organization"
               />
-              <Button onClick={handleNext} disabled={!formData.restaurantName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button type="submit" disabled={!formData.restaurantName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
-            </div>
+            </form>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
               <ChevronLeft className="w-4 h-4 mr-2" />
               Torna indietro
@@ -671,7 +671,7 @@ const MultiStepForm = () => {
                 Come possiamo chiamarti?
               </p>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Input 
                   id="firstName"
@@ -692,11 +692,11 @@ const MultiStepForm = () => {
                   autoComplete="family-name"
                 />
               </div>
-              <Button onClick={handleNext} disabled={!formData.firstName.trim() || !formData.lastName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button type="submit" disabled={!formData.firstName.trim() || !formData.lastName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
-            </div>
+            </form>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
               <ChevronLeft className="w-4 h-4 mr-2" />
               Torna indietro
@@ -712,7 +712,7 @@ const MultiStepForm = () => {
                 Per essere contattato rapidamente
               </p>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
               <Input 
                 id="phoneNumber"
                 name="phoneNumber" 
@@ -725,11 +725,11 @@ const MultiStepForm = () => {
                 type="tel" 
                 autoComplete="tel"
               />
-              <Button onClick={handleNext} disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^\+39\d{10}$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button type="submit" disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^\+39\d{10}$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
-            </div>
+            </form>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
               <ChevronLeft className="w-4 h-4 mr-2" />
               Torna indietro
@@ -745,7 +745,7 @@ const MultiStepForm = () => {
                 Per ricevere la risposta alla tua richiesta
               </p>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
               <Input 
                 id="email"
                 name="email" 
@@ -758,11 +758,11 @@ const MultiStepForm = () => {
                 type="email" 
                 autoComplete="email"
               />
-              <Button onClick={handleNext} disabled={!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button type="submit" disabled={!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
-            </div>
+            </form>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
               <ChevronLeft className="w-4 h-4 mr-2" />
               Torna indietro
@@ -812,9 +812,9 @@ const MultiStepForm = () => {
                 Ultimo passaggio per completare la richiesta
               </p>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-4">
               <Button 
-                onClick={handleSubmit} 
+                type="submit"
                 disabled={!formData.privacyConsent || isSubmitting || isSubmitted}
                 className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
                 size="lg"
@@ -822,6 +822,7 @@ const MultiStepForm = () => {
                 {isSubmitting ? "Invio in corso..." : isSubmitted ? "Richiesta inviata" : "Invia Richiesta"}
                 {!isSubmitting && !isSubmitted && <ChevronRight className="w-4 h-4 ml-2" />}
               </Button>
+            </form>
               
               <div className="flex items-start space-x-3 p-4 bg-input rounded-lg border border-border">
                 <button
