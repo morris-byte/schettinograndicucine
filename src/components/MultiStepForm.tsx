@@ -59,6 +59,8 @@ const MultiStepForm = () => {
   });
   const [showThankYou, setShowThankYou] = useState(false);
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   
   // Tracking refs for time measurements
   const formStartTimeRef = useRef<number>(Date.now());
@@ -317,6 +319,11 @@ const MultiStepForm = () => {
   };
 
   const handleSubmit = async () => {
+    // Prevenire invii multipli
+    if (isSubmitting || isSubmitted) {
+      return;
+    }
+    
     // Validate phone number format (must be +39 followed by exactly 10 digits)
     const isValidPhone = (raw: string) => {
       const compact = raw.replace(/\s+/g, '');
@@ -348,6 +355,8 @@ const MultiStepForm = () => {
       });
       return; // Privacy consent required
     }
+    
+    setIsSubmitting(true);
     
     try {
       // Make webhook URL
@@ -428,6 +437,8 @@ const MultiStepForm = () => {
         // Mark that form was completed (don't track abandon)
         hasTrackedAbandonRef.current = true;
         
+        setIsSubmitted(true);
+        
         toast({
           title: "Preventivo inviato!",
           description: "Ti contatteremo presto per discutere le tue esigenze.",
@@ -447,6 +458,8 @@ const MultiStepForm = () => {
         description: "Si è verificato un errore. Riprova o contattaci direttamente.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const getThankYouMessage = () => {
@@ -576,6 +589,7 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <Input 
+                id="restaurantZone"
                 name="restaurantZone" 
                 placeholder="Es. Napoli, Salerno, Caserta..." 
                 value={formData.restaurantZone} 
@@ -606,7 +620,15 @@ const MultiStepForm = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <Input placeholder="Nome del ristorante" value={formData.restaurantName} onChange={e => handleInputChange('restaurantName', e.target.value)} className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" />
+              <Input 
+                id="restaurantName"
+                name="restaurantName"
+                placeholder="Nome del ristorante" 
+                value={formData.restaurantName} 
+                onChange={e => handleInputChange('restaurantName', e.target.value)} 
+                className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
+                autoComplete="organization"
+              />
               <Button onClick={handleNext} disabled={!formData.restaurantName.trim()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
@@ -652,6 +674,7 @@ const MultiStepForm = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Input 
+                  id="firstName"
                   name="firstName" 
                   placeholder="Nome" 
                   value={formData.firstName} 
@@ -660,6 +683,7 @@ const MultiStepForm = () => {
                   autoComplete="given-name"
                 />
                 <Input 
+                  id="lastName"
                   name="lastName" 
                   placeholder="Cognome" 
                   value={formData.lastName} 
@@ -690,6 +714,7 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <Input 
+                id="phoneNumber"
                 name="phoneNumber" 
                 placeholder="Il tuo numero di telefono" 
                 value={formData.phoneNumber} 
@@ -722,6 +747,7 @@ const MultiStepForm = () => {
             </div>
             <div className="space-y-4">
               <Input 
+                id="email"
                 name="email" 
                 placeholder="La tua email (es. nome@esempio.it)" 
                 value={formData.email} 
@@ -789,12 +815,12 @@ const MultiStepForm = () => {
             <div className="space-y-4">
               <Button 
                 onClick={handleSubmit} 
-                disabled={!formData.privacyConsent}
+                disabled={!formData.privacyConsent || isSubmitting || isSubmitted}
                 className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
                 size="lg"
               >
-                Invia Richiesta
-                <ChevronRight className="w-4 h-4 ml-2" />
+                {isSubmitting ? "Invio in corso..." : isSubmitted ? "Richiesta inviata" : "Invia Richiesta"}
+                {!isSubmitting && !isSubmitted && <ChevronRight className="w-4 h-4 ml-2" />}
               </Button>
               
               <div className="flex items-start space-x-3 p-4 bg-input rounded-lg border border-border">
