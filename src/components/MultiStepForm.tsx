@@ -813,17 +813,6 @@ const MultiStepForm = () => {
               </p>
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-4">
-              <Button 
-                type="submit"
-                disabled={!formData.privacyConsent || isSubmitting || isSubmitted}
-                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
-                size="lg"
-              >
-                {isSubmitting ? "Invio in corso..." : isSubmitted ? "Richiesta inviata" : "Invia Richiesta"}
-                {!isSubmitting && !isSubmitted && <ChevronRight className="w-4 h-4 ml-2" />}
-              </Button>
-            </form>
-              
               <div className="flex items-start space-x-3 p-4 bg-input rounded-lg border border-border">
                 <button
                   type="button"
@@ -856,7 +845,16 @@ const MultiStepForm = () => {
                   . I dati saranno utilizzati esclusivamente per rispondere alla tua richiesta e fornire i servizi richiesti.
                 </label>
               </div>
-            </div>
+              <Button 
+                type="submit"
+                disabled={!formData.privacyConsent || isSubmitting || isSubmitted}
+                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
+                size="lg"
+              >
+                {isSubmitting ? "Invio in corso..." : isSubmitted ? "Richiesta inviata" : "Invia Richiesta"}
+                {!isSubmitting && !isSubmitted && <ChevronRight className="w-4 h-4 ml-2" />}
+              </Button>
+            </form>
             <Button onClick={handleBack} variant="ghost" className="w-full text-text-secondary hover:text-text-primary transition-[var(--transition-smooth)]">
               <ChevronLeft className="w-4 h-4 mr-2" />
               Torna indietro
