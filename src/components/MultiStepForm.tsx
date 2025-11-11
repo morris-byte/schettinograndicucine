@@ -62,6 +62,7 @@ const MultiStepForm = () => {
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [phoneInputKey, setPhoneInputKey] = useState(0); // Key to force remount for autofill
   
   // Tracking refs for time measurements
   const formStartTimeRef = useRef<number>(Date.now());
@@ -77,6 +78,7 @@ const MultiStepForm = () => {
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const lastDetectedPhoneRef = useRef<string>('');
   const phoneAutofillDetectedRef = useRef<boolean>(false);
+  const phoneInputKeyRef = useRef<number>(0); // Track phoneInputKey in a ref for interval access
 
   // Initialize GA4 and advanced tracking on component mount
   useEffect(() => {
@@ -151,51 +153,58 @@ const MultiStepForm = () => {
     }
   }, [currentStep, maxStepReached]);
 
-  // Function to check for phone autofill - defined with useCallback to be accessible everywhere
+  // Function to check for phone autofill - use a more reliable approach
   const checkPhoneAutofill = useCallback(() => {
+    if (currentStep !== 7) return;
+    
     // Get the input element directly from DOM
     const inputElement = phoneInputRef.current || document.querySelector('#phoneNumber') as HTMLInputElement;
+    if (!inputElement) return;
     
-    if (currentStep === 7 && inputElement) {
-      // Read the actual DOM value
-      // With controlled inputs, React may override, but we can still read what browser set
-      const domValue = inputElement.value || '';
-      const currentStateValue = formData.phoneNumber || '';
+    // Read the actual DOM value - this is what the browser autofilled
+    const domValue = inputElement.value || '';
+    const currentStateValue = formData.phoneNumber || '';
+    
+    // Skip if we already processed this exact value
+    if (domValue === lastDetectedPhoneRef.current) {
+      return;
+    }
+    
+    // Check if DOM has a value that's different from state
+    if (domValue.trim().length > 0) {
+      const digitCount = domValue.replace(/\D/g, '').length;
       
-      // Skip if we already processed this exact value
-      if (domValue === lastDetectedPhoneRef.current) {
-        return;
-      }
-      
-      // If DOM has a value and state is empty or different, it might be autofill
-      if (domValue.trim().length > 0) {
-        const digitCount = domValue.replace(/\D/g, '').length;
+      // Only process if it looks like a phone number (at least 6 digits)
+      if (digitCount >= 6) {
+        // Compare digits (ignore formatting differences)
+        const stateDigits = currentStateValue.replace(/\D/g, '');
+        const domDigits = domValue.replace(/\D/g, '');
         
-        // Only process if it looks like a phone number (at least 6 digits)
-        if (digitCount >= 6) {
-          // Compare digits (ignore formatting)
-          const stateDigits = currentStateValue.replace(/\D/g, '');
-          const domDigits = domValue.replace(/\D/g, '');
+        // If digits are different or state is empty, it's autofill
+        if (stateDigits !== domDigits || !currentStateValue || currentStateValue.trim().length === 0) {
+          lastDetectedPhoneRef.current = domValue;
           
-          // If digits are different or state is empty, it's likely autofill
-          if (stateDigits !== domDigits || !currentStateValue || currentStateValue.trim().length === 0) {
-            lastDetectedPhoneRef.current = domValue;
-            
-            // Track autofill if state was empty
-            if (!phoneAutofillDetectedRef.current && (!currentStateValue || currentStateValue.trim().length === 0)) {
-              phoneAutofillDetectedRef.current = true;
-              trackAutofillUsage(['phoneNumber']);
-            }
-            
-            // Update state with the DOM value directly
-            // React will render it, and formatting will happen on blur if needed
-            setFormData(prev => {
-              if (prev.phoneNumber !== domValue) {
-                return { ...prev, phoneNumber: domValue };
-              }
-              return prev;
-            });
+          // Track autofill if state was empty
+          if (!phoneAutofillDetectedRef.current && (!currentStateValue || currentStateValue.trim().length === 0)) {
+            phoneAutofillDetectedRef.current = true;
+            trackAutofillUsage(['phoneNumber']);
           }
+          
+          // Update state with DOM value and switch to controlled mode
+          setFormData(prev => {
+            if (prev.phoneNumber !== domValue) {
+              return { ...prev, phoneNumber: domValue };
+            }
+            return prev;
+          });
+          
+          // Switch to controlled mode after detecting autofill
+          // This ensures React renders the autofilled value
+          setPhoneInputKey(prev => {
+            const newKey = prev === 0 ? 1 : prev;
+            phoneInputKeyRef.current = newKey;
+            return newKey;
+          });
         }
       }
     }
@@ -288,26 +297,48 @@ const MultiStepForm = () => {
       checkPhoneAutofill();
     }, 2000);
     
+    // Sync phoneInputKey state with ref for interval access
+    phoneInputKeyRef.current = phoneInputKey;
+    
     // Reset detection refs when step changes
     if (currentStep !== 7) {
       lastDetectedPhoneRef.current = '';
       phoneAutofillDetectedRef.current = false;
+      // Reset phone input key when leaving step 7 to allow fresh autofill detection
+      if (phoneInputKey > 0 && (!formData.phoneNumber || formData.phoneNumber.trim().length === 0)) {
+        const newKey = 0;
+        setPhoneInputKey(newKey);
+        phoneInputKeyRef.current = newKey;
+      }
+    } else if (currentStep === 7) {
+      // When entering step 7, reset key if field is empty to allow autofill
+      if (!formData.phoneNumber || formData.phoneNumber.trim().length === 0) {
+        const newKey = 0;
+        setPhoneInputKey(newKey);
+        phoneInputKeyRef.current = newKey;
+      }
     }
     
     // Periodic check for phone autofill when on step 7
-    // Check frequently to catch autofill even with controlled input
+    // Check very frequently to catch autofill before React interferes
     let autofillCheckInterval: NodeJS.Timeout | null = null;
     if (currentStep === 7) {
-      // Check frequently (every 100ms) for the first 5 seconds
+      // Check very frequently (every 30ms) for the first 3 seconds
+      // Use ref to check if input is still uncontrolled (ref updates immediately)
       let checkCount = 0;
-      const maxChecks = 50; // 5 seconds at 100ms
+      const maxChecks = 100; // 3 seconds at 30ms
       autofillCheckInterval = setInterval(() => {
+        // Stop if input became controlled (check ref, not state - ref updates immediately)
+        if (phoneInputKeyRef.current > 0) {
+          clearInterval(autofillCheckInterval as NodeJS.Timeout);
+          return;
+        }
         checkPhoneAutofill();
         checkCount++;
         if (checkCount >= maxChecks) {
           clearInterval(autofillCheckInterval as NodeJS.Timeout);
         }
-      }, 100);
+      }, 30);
     }
     
     // Listen for input events on phone field specifically
@@ -362,7 +393,7 @@ const MultiStepForm = () => {
       document.removeEventListener('change', handleChange, true);
       document.removeEventListener('animationstart', handleAnimationStart as EventListener, true);
     };
-  }, [currentStep, checkPhoneAutofill]);
+  }, [currentStep, checkPhoneAutofill, phoneInputKey]);
   const handleAnswer = (answer: boolean, field: 'isRestaurateur' | 'isInCampania') => {
     // Update form data
     setFormData(prev => ({
@@ -430,9 +461,7 @@ const MultiStepForm = () => {
     
     // Process phone number input
     if (field === 'phoneNumber') {
-      // For phone numbers, accept the value as-is while typing
-      // Formatting will happen on blur or submit
-      // This allows autofill to work without interference
+      // Allow user to type freely - we'll validate and format
       processedValue = value;
     }
     
@@ -441,18 +470,32 @@ const MultiStepForm = () => {
       [field]: processedValue
     }));
     
-    // Validate phone number format on change (but don't show error immediately)
-    // Only show error on blur or submit
-    if (field === 'phoneNumber' && processedValue.length >= 13) {
+    // Validate phone number format on change and show error if invalid
+    if (field === 'phoneNumber' && typeof processedValue === 'string' && processedValue.trim().length > 0) {
+      const phoneValue = processedValue as string;
       const isValidPhone = (raw: string) => {
-        const compact = raw.replace(/\s+/g, '').replace(/[^\d+]/g, '');
-        // Must start with +39 and have exactly 10 more digits
-        const phoneRegex = /^\+39\d{10}$/;
-        return phoneRegex.test(compact);
+        // Extract digits only
+        const digits = raw.replace(/\D/g, '');
+        // Check if it has the right number of digits (10 after country code, or 10-11 total)
+        // Accept +39XXXXXXXXXX or just 10-11 digits
+        if (raw.includes('+39')) {
+          const afterCountry = raw.split('+39')[1]?.replace(/\D/g, '') || '';
+          return afterCountry.length === 10;
+        } else {
+          // Just digits - should be 10 (without leading 0) or 11 (with leading 0)
+          const cleanDigits = digits.startsWith('0') ? digits.substring(1) : digits;
+          return cleanDigits.length === 10 && digits.length <= 11;
+        }
       };
-      // Don't show error while typing, only validate silently
-      if (!isValidPhone(processedValue)) {
-        // Silent validation - no toast
+      
+      // Show error if value is long enough to validate but invalid
+      const digits = phoneValue.replace(/\D/g, '');
+      if (digits.length >= 6 && !isValidPhone(phoneValue)) {
+        trackFormError('inline_validation', 'Invalid phone number format while typing', currentStep);
+        toast({
+          description: "Il numero deve avere esattamente 10 cifre dopo +39",
+          duration: 3000,
+        });
       }
     }
     
@@ -959,48 +1002,60 @@ const MultiStepForm = () => {
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
               <Input 
+                key={`phone-${phoneInputKey}`}
                 ref={phoneInputRef}
                 id="phoneNumber"
                 name="phoneNumber" 
                 placeholder="Il tuo numero di telefono" 
-                value={formData.phoneNumber} 
-                onChange={e => handleInputChange('phoneNumber', e.target.value)}
+                {...(phoneInputKey === 0 && (!formData.phoneNumber || formData.phoneNumber.trim().length === 0)
+                  ? { defaultValue: '' }
+                  : { value: formData.phoneNumber }
+                )}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  // If this was the first interaction (uncontrolled), switch to controlled
+                  if (phoneInputKey === 0) {
+                    setPhoneInputKey(1);
+                    phoneInputKeyRef.current = 1;
+                  }
+                  handleInputChange('phoneNumber', newValue);
+                }}
                 onFocus={() => {
                   handleFieldFocus('phoneNumber');
-                  // Check for autofill after focus - browser autofill often happens on focus
-                  // Check multiple times to catch delayed autofill
-                  setTimeout(() => checkPhoneAutofill(), 0);
-                  setTimeout(() => checkPhoneAutofill(), 50);
-                  setTimeout(() => checkPhoneAutofill(), 100);
-                  setTimeout(() => checkPhoneAutofill(), 200);
-                  setTimeout(() => checkPhoneAutofill(), 400);
-                  setTimeout(() => checkPhoneAutofill(), 600);
-                  setTimeout(() => checkPhoneAutofill(), 1000);
+                  // Check for autofill multiple times - browser autofill can be delayed
+                  const checkTimes = [0, 50, 100, 200, 400, 600, 1000, 1500];
+                  checkTimes.forEach(delay => {
+                    setTimeout(() => checkPhoneAutofill(), delay);
+                  });
                 }}
                 onBlur={(e) => {
                   handleFieldBlur('phoneNumber');
-                  // Final check for autofill and format if needed
                   const input = e.target as HTMLInputElement;
                   const inputValue = input.value || '';
                   
                   if (inputValue.trim().length > 0) {
-                    // Check if autofill happened (value in DOM differs from state)
+                    // Final check for autofill
                     if (inputValue !== formData.phoneNumber) {
-                      // Update state with autofilled value
+                      // Update state with value from DOM (might be autofill)
                       setFormData(prev => ({ ...prev, phoneNumber: inputValue }));
                     }
                     
                     // Format phone number: extract digits and format to +39XXXXXXXXXX
                     const digits = inputValue.replace(/\D/g, '');
                     if (digits.length >= 10) {
-                      const last10 = digits.substring(digits.length - 10);
-                      // Remove leading 0 if present (Italian numbers sometimes start with 0)
+                      // Take last 10 digits (in case there are extra)
+                      const last10 = digits.substring(Math.max(0, digits.length - 10));
+                      // Remove leading 0 if present
                       const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
                       if (withoutLeadingZero.length === 10) {
                         const formatted = '+39' + withoutLeadingZero;
-                        if (formatted !== formData.phoneNumber) {
-                          setFormData(prev => ({ ...prev, phoneNumber: formatted }));
-                        }
+                        // Update state with formatted value
+                        setFormData(prev => {
+                          if (prev.phoneNumber !== formatted) {
+                            return { ...prev, phoneNumber: formatted };
+                          }
+                          return prev;
+                        });
                       }
                     }
                   }
