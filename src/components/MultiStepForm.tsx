@@ -156,20 +156,47 @@ const MultiStepForm = () => {
       inputs.forEach((input: Element) => {
         const htmlInput = input as HTMLInputElement;
         if (htmlInput.value && htmlInput.value.trim() !== '') {
-          const name = htmlInput.getAttribute('name') || htmlInput.getAttribute('placeholder')?.toLowerCase();
+          const name = htmlInput.getAttribute('name') || htmlInput.getAttribute('id') || htmlInput.getAttribute('placeholder')?.toLowerCase();
+          const autoComplete = htmlInput.getAttribute('autocomplete') || '';
           
-          if (name?.includes('nome') || htmlInput.placeholder?.toLowerCase().includes('nome')) {
+          if (name?.includes('nome') || htmlInput.placeholder?.toLowerCase().includes('nome') || autoComplete === 'given-name') {
             setFormData(prev => ({ ...prev, firstName: htmlInput.value }));
             autofillFields.push('firstName');
-          } else if (name?.includes('cognome') || htmlInput.placeholder?.toLowerCase().includes('cognome')) {
+          } else if (name?.includes('cognome') || htmlInput.placeholder?.toLowerCase().includes('cognome') || autoComplete === 'family-name') {
             setFormData(prev => ({ ...prev, lastName: htmlInput.value }));
             autofillFields.push('lastName');
-          } else if (name?.includes('telefono') || htmlInput.type === 'tel') {
-            setFormData(prev => ({ ...prev, phoneNumber: htmlInput.value }));
+          } else if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
+            // Handle phone number autofill - format it properly
+            let phoneValue = htmlInput.value.trim();
+            // If phone doesn't start with +39, try to add it or format it
+            if (phoneValue && !phoneValue.startsWith('+39')) {
+              // Remove any non-digit characters except +
+              const cleaned = phoneValue.replace(/[^\d+]/g, '');
+              // If it starts with 39, add +
+              if (cleaned.startsWith('39')) {
+                phoneValue = '+' + cleaned;
+              } else if (cleaned.startsWith('0')) {
+                // Italian number starting with 0, replace with +39
+                phoneValue = '+39' + cleaned.substring(1);
+              } else if (!cleaned.startsWith('+')) {
+                // Just digits, assume Italian number
+                phoneValue = '+39' + cleaned;
+              } else {
+                phoneValue = cleaned;
+              }
+              // Limit to 13 characters (+39 + 10 digits)
+              if (phoneValue.length > 13) {
+                phoneValue = phoneValue.substring(0, 13);
+              }
+            }
+            setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
             autofillFields.push('phoneNumber');
-          } else if (name?.includes('zona') || name?.includes('zone') || htmlInput.placeholder?.toLowerCase().includes('zona')) {
+          } else if (name?.includes('zona') || name?.includes('zone') || htmlInput.placeholder?.toLowerCase().includes('zona') || autoComplete === 'address-level2') {
             setFormData(prev => ({ ...prev, restaurantZone: htmlInput.value }));
             autofillFields.push('restaurantZone');
+          } else if (autoComplete === 'email' || htmlInput.type === 'email') {
+            setFormData(prev => ({ ...prev, email: htmlInput.value }));
+            autofillFields.push('email');
           }
         }
       });
@@ -180,9 +207,74 @@ const MultiStepForm = () => {
       }
     };
 
-    // Run autofill detection after a short delay
-    const timer = setTimeout(autoFillForm, 100);
-    return () => clearTimeout(timer);
+    // Run autofill detection multiple times to catch browser autofill
+    // Some browsers take longer to populate fields
+    const timer1 = setTimeout(autoFillForm, 100);
+    const timer2 = setTimeout(autoFillForm, 300);
+    const timer3 = setTimeout(autoFillForm, 500);
+    const timer4 = setTimeout(autoFillForm, 1000);
+    
+    // Also listen for input events that might indicate autofill
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target && target.value && (target.type === 'tel' || target.getAttribute('autocomplete') === 'tel')) {
+        // Special handling for phone number autofill
+        if (target.type === 'tel' || target.getAttribute('autocomplete') === 'tel') {
+          let phoneValue = target.value.trim();
+          // Format phone number if needed
+          if (phoneValue && !phoneValue.startsWith('+39')) {
+            const cleaned = phoneValue.replace(/[^\d+]/g, '');
+            if (cleaned.startsWith('39')) {
+              phoneValue = '+' + cleaned;
+            } else if (cleaned.startsWith('0')) {
+              phoneValue = '+39' + cleaned.substring(1);
+            } else if (!cleaned.startsWith('+') && cleaned.length > 0) {
+              phoneValue = '+39' + cleaned;
+            } else {
+              phoneValue = cleaned;
+            }
+            if (phoneValue.length > 13) {
+              phoneValue = phoneValue.substring(0, 13);
+            }
+            setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
+            trackAutofillUsage(['phoneNumber']);
+          } else if (phoneValue) {
+            setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
+          }
+        } else {
+          autoFillForm();
+        }
+      }
+    };
+    
+    // Listen for change events (autofill triggers change event)
+    const handleChange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target && target.type === 'tel' && target.value) {
+        autoFillForm();
+      }
+    };
+    
+    // Listen for animationstart event (browsers use this for autofill detection)
+    const handleAnimationStart = (e: AnimationEvent) => {
+      if (e.animationName === 'onAutoFillStart' || (e.target as HTMLElement)?.matches('input:-webkit-autofill')) {
+        autoFillForm();
+      }
+    };
+    
+    document.addEventListener('input', handleInput, true);
+    document.addEventListener('change', handleChange, true);
+    document.addEventListener('animationstart', handleAnimationStart as EventListener, true);
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      clearTimeout(timer4);
+      document.removeEventListener('input', handleInput, true);
+      document.removeEventListener('change', handleChange, true);
+      document.removeEventListener('animationstart', handleAnimationStart as EventListener, true);
+    };
   }, [currentStep]);
   const handleAnswer = (answer: boolean, field: 'isRestaurateur' | 'isInCampania') => {
     // Update form data
@@ -804,10 +896,18 @@ const MultiStepForm = () => {
                 value={formData.phoneNumber} 
                 onChange={e => handleInputChange('phoneNumber', e.target.value)}
                 onFocus={() => handleFieldFocus('phoneNumber')}
-                onBlur={() => handleFieldBlur('phoneNumber')}
+                onBlur={(e) => {
+                  handleFieldBlur('phoneNumber');
+                  // Check if autofill was used when field loses focus
+                  const input = e.target as HTMLInputElement;
+                  if (input.value && input.value !== formData.phoneNumber) {
+                    handleInputChange('phoneNumber', input.value);
+                  }
+                }}
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
                 type="tel" 
                 autoComplete="tel"
+                inputMode="tel"
               />
               <Button type="submit" disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^\+39\d{10}$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
                 Continua
