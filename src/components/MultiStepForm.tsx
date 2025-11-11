@@ -185,6 +185,7 @@ const MultiStepForm = () => {
     return () => clearTimeout(timer);
   }, [currentStep]);
   const handleAnswer = (answer: boolean, field: 'isRestaurateur' | 'isInCampania') => {
+    // Update form data
     setFormData(prev => ({
       ...prev,
       [field]: answer
@@ -199,11 +200,18 @@ const MultiStepForm = () => {
       setShowThankYou(true);
       return;
     }
-    // Use goToStep to maintain maxStepReached tracking
-    goToStep(currentStep + 1);
+    
+    // Navigate directly to next step without validation
+    // The step is completed by this action, so we can proceed immediately
+    const nextStep = currentStep + 1;
+    if (nextStep > maxStepReached) {
+      setMaxStepReached(nextStep);
+    }
+    setCurrentStep(nextStep);
   };
 
   const handleCatalogAnswer = (answer: boolean) => {
+    // Update form data
     setFormData(prev => ({
       ...prev,
       wantsCatalog: answer
@@ -212,8 +220,13 @@ const MultiStepForm = () => {
     // Track form step
     trackFormStep(currentStep, 'Catalog Question');
     
-    // Use goToStep to maintain maxStepReached tracking
-    goToStep(currentStep + 1);
+    // Navigate directly to next step without validation
+    // The step is completed by this action, so we can proceed immediately
+    const nextStep = currentStep + 1;
+    if (nextStep > maxStepReached) {
+      setMaxStepReached(nextStep);
+    }
+    setCurrentStep(nextStep);
   };
   // Helper functions for field tracking
   const handleFieldFocus = (fieldName: string) => {
