@@ -148,21 +148,22 @@ const MultiStepForm = () => {
       const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"]');
       const autofillFields: string[] = [];
       
-      inputs.forEach((input: any) => {
-        if (input.value && input.value.trim() !== '') {
-          const name = input.getAttribute('name') || input.getAttribute('placeholder')?.toLowerCase();
+      inputs.forEach((input: Element) => {
+        const htmlInput = input as HTMLInputElement;
+        if (htmlInput.value && htmlInput.value.trim() !== '') {
+          const name = htmlInput.getAttribute('name') || htmlInput.getAttribute('placeholder')?.toLowerCase();
           
-          if (name?.includes('nome') || input.placeholder?.toLowerCase().includes('nome')) {
-            setFormData(prev => ({ ...prev, firstName: input.value }));
+          if (name?.includes('nome') || htmlInput.placeholder?.toLowerCase().includes('nome')) {
+            setFormData(prev => ({ ...prev, firstName: htmlInput.value }));
             autofillFields.push('firstName');
-          } else if (name?.includes('cognome') || input.placeholder?.toLowerCase().includes('cognome')) {
-            setFormData(prev => ({ ...prev, lastName: input.value }));
+          } else if (name?.includes('cognome') || htmlInput.placeholder?.toLowerCase().includes('cognome')) {
+            setFormData(prev => ({ ...prev, lastName: htmlInput.value }));
             autofillFields.push('lastName');
-          } else if (name?.includes('telefono') || input.type === 'tel') {
-            setFormData(prev => ({ ...prev, phoneNumber: input.value }));
+          } else if (name?.includes('telefono') || htmlInput.type === 'tel') {
+            setFormData(prev => ({ ...prev, phoneNumber: htmlInput.value }));
             autofillFields.push('phoneNumber');
-          } else if (name?.includes('zona') || name?.includes('zone') || input.placeholder?.toLowerCase().includes('zona')) {
-            setFormData(prev => ({ ...prev, restaurantZone: input.value }));
+          } else if (name?.includes('zona') || name?.includes('zone') || htmlInput.placeholder?.toLowerCase().includes('zona')) {
+            setFormData(prev => ({ ...prev, restaurantZone: htmlInput.value }));
             autofillFields.push('restaurantZone');
           }
         }

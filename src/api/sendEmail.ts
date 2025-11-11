@@ -1,5 +1,19 @@
 // API endpoint per inviare email ai commerciali
-export const sendEmailToCommerciali = async (leadData: any) => {
+interface LeadData {
+  isRestaurateur: boolean | null;
+  isInCampania: boolean | null;
+  restaurantZone: string;
+  restaurantName: string;
+  equipmentType: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email: string;
+  wantsCatalog: boolean | null;
+  privacyConsent: boolean;
+}
+
+export const sendEmailToCommerciali = async (leadData: LeadData) => {
   try {
     const response = await fetch('/api/send-email', {
       method: 'POST',

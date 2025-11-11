@@ -5,10 +5,11 @@ export const GA4_MEASUREMENT_ID = 'G-CWVFE2B6PJ';
 export const GOOGLE_ADS_ID = 'AW-17544893918';
 
 // Declare gtag function for TypeScript
+// gtag has a flexible signature: gtag(command, targetId?, config?)
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
-    dataLayer: any[];
+    gtag: (command: string, targetId?: string | Record<string, unknown>, config?: Record<string, unknown>) => void;
+    dataLayer: unknown[];
   }
 }
 
@@ -38,7 +39,7 @@ export const trackGoogleAdsConversion = (conversionLabel?: string, value?: numbe
   if (typeof window !== 'undefined' && window.gtag) {
     console.log('🎯 Tracking Google Ads conversion:', conversionLabel);
     
-    const conversionConfig: any = {
+    const conversionConfig: Record<string, string | number> = {
       send_to: GOOGLE_ADS_ID
     };
     
@@ -60,7 +61,15 @@ export const trackGoogleAdsConversion = (conversionLabel?: string, value?: numbe
 };
 
 // Track form submission
-export const trackFormSubmission = (formData: any) => {
+interface FormSubmissionData {
+  restaurantName?: string;
+  isRestaurateur?: boolean | null;
+  isInCampania?: boolean | null;
+  restaurantZone?: string;
+  equipmentType?: string;
+}
+
+export const trackFormSubmission = (formData: FormSubmissionData) => {
   if (typeof window !== 'undefined' && window.gtag) {
     console.log('📊 Tracking form submission:', formData);
     
@@ -126,7 +135,7 @@ export const trackButtonClick = (buttonName: string, location: string) => {
 };
 
 // Track page views
-export const trackPageView = (pageName: string, additionalParams?: Record<string, any>) => {
+export const trackPageView = (pageName: string, additionalParams?: Record<string, unknown>) => {
   if (typeof window !== 'undefined' && window.gtag) {
     console.log(`📊 Tracking page view: ${pageName}`);
     
@@ -182,7 +191,7 @@ export const trackFormAbandon = (step: number, stepName: string, timeSpent: numb
 };
 
 // Track form completion time
-export const trackFormCompletionTime = (totalTimeSeconds: number, formData?: any) => {
+export const trackFormCompletionTime = (totalTimeSeconds: number, formData?: FormSubmissionData) => {
   if (typeof window !== 'undefined' && window.gtag) {
     console.log(`⏱️ Tracking form completion time: ${totalTimeSeconds}s`);
     
