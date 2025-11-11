@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -62,6 +62,8 @@ const MultiStepForm = () => {
   const [thankYouType, setThankYouType] = useState<'success' | 'not-restaurateur' | 'not-campania'>('success');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [phoneInputKey, setPhoneInputKey] = useState(0);
+  const [isPhoneUncontrolled, setIsPhoneUncontrolled] = useState(true);
   
   // Tracking refs for time measurements
   const formStartTimeRef = useRef<number>(Date.now());
@@ -72,6 +74,11 @@ const MultiStepForm = () => {
   const pageStartTimeRef = useRef<number>(Date.now());
   const scrollDepthsTrackedRef = useRef<Set<number>>(new Set());
   const autofillDetectedRef = useRef<Set<string>>(new Set());
+  
+  // Ref for phone number input to detect autofill
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const lastDetectedPhoneRef = useRef<string>('');
+  const phoneAutofillDetectedRef = useRef<boolean>(false);
 
   // Initialize GA4 and advanced tracking on component mount
   useEffect(() => {
@@ -146,8 +153,64 @@ const MultiStepForm = () => {
     }
   }, [currentStep, maxStepReached]);
 
+  // Function to check for phone autofill - defined with useCallback to be accessible everywhere
+  const checkPhoneAutofill = useCallback(() => {
+    // Get the input element directly from DOM
+    const inputElement = phoneInputRef.current || document.querySelector('#phoneNumber') as HTMLInputElement;
+    
+    if (currentStep === 7 && inputElement && isPhoneUncontrolled) {
+      // When input is uncontrolled, we can read the actual DOM value
+      const domValue = inputElement.value || '';
+      const currentStateValue = formData.phoneNumber || '';
+      
+      // Skip if we already processed this exact value
+      if (domValue === lastDetectedPhoneRef.current) {
+        return;
+      }
+      
+      // If DOM has a value that's different from state, process it
+      if (domValue.trim().length > 0 && domValue.trim() !== currentStateValue.trim()) {
+        let phoneValue = domValue.trim();
+        
+        // Format phone number if needed (same logic as handleInputChange)
+        if (phoneValue && !phoneValue.startsWith('+39')) {
+          const cleaned = phoneValue.replace(/[^\d+]/g, '');
+          if (cleaned.startsWith('39') && cleaned.length >= 12) {
+            phoneValue = '+' + cleaned;
+          } else if (cleaned.startsWith('0') && cleaned.length >= 10) {
+            phoneValue = '+39' + cleaned.substring(1);
+          } else if (!cleaned.startsWith('+') && cleaned.length >= 10) {
+            phoneValue = '+39' + cleaned;
+          } else {
+            phoneValue = cleaned;
+          }
+          if (phoneValue.length > 13) {
+            phoneValue = phoneValue.substring(0, 13);
+          }
+        }
+        
+        // Update state with formatted value and switch to controlled mode
+        if (phoneValue.length >= 6) {
+          lastDetectedPhoneRef.current = phoneValue;
+          
+          // Track autofill if state was empty
+          if (!phoneAutofillDetectedRef.current && (!currentStateValue || currentStateValue.trim().length === 0)) {
+            phoneAutofillDetectedRef.current = true;
+            trackAutofillUsage(['phoneNumber']);
+          }
+          
+          // Switch to controlled mode by updating state and changing key
+          setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
+          setIsPhoneUncontrolled(false);
+          setPhoneInputKey(prev => prev + 1); // Force remount as controlled
+        }
+      }
+    }
+  }, [currentStep, isPhoneUncontrolled, formData.phoneNumber]);
+
   // Auto-fill form fields using browser autofill
   useEffect(() => {
+    
     const autoFillForm = () => {
       // Try to detect if browser has autofill data
       const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"]');
@@ -209,48 +272,85 @@ const MultiStepForm = () => {
 
     // Run autofill detection multiple times to catch browser autofill
     // Some browsers take longer to populate fields
-    const timer1 = setTimeout(autoFillForm, 100);
-    const timer2 = setTimeout(autoFillForm, 300);
-    const timer3 = setTimeout(autoFillForm, 500);
-    const timer4 = setTimeout(autoFillForm, 1000);
+    const timer1 = setTimeout(() => {
+      autoFillForm();
+      checkPhoneAutofill();
+    }, 100);
+    const timer2 = setTimeout(() => {
+      autoFillForm();
+      checkPhoneAutofill();
+    }, 300);
+    const timer3 = setTimeout(() => {
+      autoFillForm();
+      checkPhoneAutofill();
+    }, 500);
+    const timer4 = setTimeout(() => {
+      autoFillForm();
+      checkPhoneAutofill();
+    }, 1000);
+    const timer5 = setTimeout(() => {
+      checkPhoneAutofill();
+    }, 1500);
+    const timer6 = setTimeout(() => {
+      checkPhoneAutofill();
+    }, 2000);
     
-    // Also listen for input events that might indicate autofill
-    const handleInput = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (target && target.value && (target.type === 'tel' || target.getAttribute('autocomplete') === 'tel')) {
-        // Special handling for phone number autofill
-        if (target.type === 'tel' || target.getAttribute('autocomplete') === 'tel') {
-          let phoneValue = target.value.trim();
-          // Format phone number if needed
-          if (phoneValue && !phoneValue.startsWith('+39')) {
-            const cleaned = phoneValue.replace(/[^\d+]/g, '');
-            if (cleaned.startsWith('39')) {
-              phoneValue = '+' + cleaned;
-            } else if (cleaned.startsWith('0')) {
-              phoneValue = '+39' + cleaned.substring(1);
-            } else if (!cleaned.startsWith('+') && cleaned.length > 0) {
-              phoneValue = '+39' + cleaned;
-            } else {
-              phoneValue = cleaned;
-            }
-            if (phoneValue.length > 13) {
-              phoneValue = phoneValue.substring(0, 13);
-            }
-            setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
-            trackAutofillUsage(['phoneNumber']);
-          } else if (phoneValue) {
-            setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
-          }
-        } else {
-          autoFillForm();
+    // Reset detection refs when step changes
+    if (currentStep !== 7) {
+      lastDetectedPhoneRef.current = '';
+      phoneAutofillDetectedRef.current = false;
+      // Reset to uncontrolled for next visit to step 7
+      if (!formData.phoneNumber || formData.phoneNumber.trim().length === 0) {
+        setIsPhoneUncontrolled(true);
+        setPhoneInputKey(0);
+      }
+    } else if (currentStep === 7) {
+      // When step 7 loads, start with uncontrolled input if field is empty
+      if (!formData.phoneNumber || formData.phoneNumber.trim().length === 0) {
+        setIsPhoneUncontrolled(true);
+        setPhoneInputKey(0);
+      } else {
+        setIsPhoneUncontrolled(false);
+      }
+    }
+    
+    // Periodic check for phone autofill when on step 7 and input is uncontrolled
+    let autofillCheckInterval: NodeJS.Timeout | null = null;
+    if (currentStep === 7 && isPhoneUncontrolled) {
+      // Check very frequently (every 30ms) for the first 3 seconds to catch autofill
+      let checkCount = 0;
+      const maxFastChecks = 100; // ~3 seconds at 30ms
+      autofillCheckInterval = setInterval(() => {
+        if (!isPhoneUncontrolled) {
+          clearInterval(autofillCheckInterval as NodeJS.Timeout);
+          return;
         }
+        checkPhoneAutofill();
+        checkCount++;
+        // Stop checking after max checks
+        if (checkCount >= maxFastChecks) {
+          clearInterval(autofillCheckInterval as NodeJS.Timeout);
+        }
+      }, 30);
+    }
+    
+    // Listen for input events on phone field specifically
+    const handlePhoneInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target && (target.id === 'phoneNumber' || target.name === 'phoneNumber')) {
+        // Small delay to let browser autofill complete
+        setTimeout(() => {
+          checkPhoneAutofill();
+        }, 50);
       }
     };
     
     // Listen for change events (autofill triggers change event)
     const handleChange = (e: Event) => {
       const target = e.target as HTMLInputElement;
-      if (target && target.type === 'tel' && target.value) {
+      if (target && (target.id === 'phoneNumber' || target.name === 'phoneNumber')) {
+        checkPhoneAutofill();
+      } else {
         autoFillForm();
       }
     };
@@ -259,10 +359,16 @@ const MultiStepForm = () => {
     const handleAnimationStart = (e: AnimationEvent) => {
       if (e.animationName === 'onAutoFillStart' || (e.target as HTMLElement)?.matches('input:-webkit-autofill')) {
         autoFillForm();
+        if ((e.target as HTMLElement)?.id === 'phoneNumber') {
+          setTimeout(checkPhoneAutofill, 100);
+        }
       }
     };
     
-    document.addEventListener('input', handleInput, true);
+    // For phone input, we need to check periodically because autofill 
+    // doesn't trigger standard events reliably
+    
+    document.addEventListener('input', handlePhoneInput, true);
     document.addEventListener('change', handleChange, true);
     document.addEventListener('animationstart', handleAnimationStart as EventListener, true);
     
@@ -271,11 +377,16 @@ const MultiStepForm = () => {
       clearTimeout(timer2);
       clearTimeout(timer3);
       clearTimeout(timer4);
-      document.removeEventListener('input', handleInput, true);
+      clearTimeout(timer5);
+      clearTimeout(timer6);
+      if (autofillCheckInterval) {
+        clearInterval(autofillCheckInterval);
+      }
+      document.removeEventListener('input', handlePhoneInput, true);
       document.removeEventListener('change', handleChange, true);
       document.removeEventListener('animationstart', handleAnimationStart as EventListener, true);
     };
-  }, [currentStep]);
+  }, [currentStep, isPhoneUncontrolled]);
   const handleAnswer = (answer: boolean, field: 'isRestaurateur' | 'isInCampania') => {
     // Update form data
     setFormData(prev => ({
@@ -456,10 +567,10 @@ const MultiStepForm = () => {
 
     // Allow going back to any previous step
     if (targetStep < currentStep) {
-      const fromStep = currentStep;
+    const fromStep = currentStep;
       const toStep = targetStep;
-      const stepName = getStepName(fromStep);
-      trackBackButton(fromStep, toStep, stepName);
+    const stepName = getStepName(fromStep);
+    trackBackButton(fromStep, toStep, stepName);
       setCurrentStep(targetStep);
       return;
     }
@@ -890,18 +1001,50 @@ const MultiStepForm = () => {
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
               <Input 
+                key={`phone-input-${phoneInputKey}`}
+                ref={phoneInputRef}
                 id="phoneNumber"
                 name="phoneNumber" 
                 placeholder="Il tuo numero di telefono" 
-                value={formData.phoneNumber} 
-                onChange={e => handleInputChange('phoneNumber', e.target.value)}
-                onFocus={() => handleFieldFocus('phoneNumber')}
+                {...(isPhoneUncontrolled && (!formData.phoneNumber || formData.phoneNumber.trim().length === 0)
+                  ? { defaultValue: '' }
+                  : { value: formData.phoneNumber }
+                )}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  // If input was uncontrolled, switch to controlled mode
+                  if (isPhoneUncontrolled) {
+                    setIsPhoneUncontrolled(false);
+                    setPhoneInputKey(prev => prev + 1);
+                  }
+                  handleInputChange('phoneNumber', newValue);
+                }}
+                onFocus={() => {
+                  handleFieldFocus('phoneNumber');
+                  // If uncontrolled, check for autofill after focus (browser autofill often happens on focus)
+                  if (isPhoneUncontrolled) {
+                    setTimeout(() => checkPhoneAutofill(), 0);
+                    setTimeout(() => checkPhoneAutofill(), 50);
+                    setTimeout(() => checkPhoneAutofill(), 100);
+                    setTimeout(() => checkPhoneAutofill(), 200);
+                    setTimeout(() => checkPhoneAutofill(), 400);
+                    setTimeout(() => checkPhoneAutofill(), 600);
+                  }
+                }}
                 onBlur={(e) => {
                   handleFieldBlur('phoneNumber');
-                  // Check if autofill was used when field loses focus
-                  const input = e.target as HTMLInputElement;
-                  if (input.value && input.value !== formData.phoneNumber) {
-                    handleInputChange('phoneNumber', input.value);
+                  // Final check for autofill when field loses focus
+                  if (isPhoneUncontrolled) {
+                    const input = e.target as HTMLInputElement;
+                    if (input.value && input.value.trim().length > 0) {
+                      checkPhoneAutofill();
+                    }
+                  } else {
+                    // If controlled, sync any remaining differences
+                    const input = e.target as HTMLInputElement;
+                    if (input.value && input.value.trim() !== formData.phoneNumber.trim()) {
+                      handleInputChange('phoneNumber', input.value);
+                    }
                   }
                 }}
                 className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
