@@ -231,31 +231,13 @@ const MultiStepForm = () => {
             setFormData(prev => ({ ...prev, lastName: htmlInput.value }));
             autofillFields.push('lastName');
           } else if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
-            // Handle phone number autofill - format it properly
-            let phoneValue = htmlInput.value.trim();
-            // If phone doesn't start with +39, try to add it or format it
-            if (phoneValue && !phoneValue.startsWith('+39')) {
-              // Remove any non-digit characters except +
-              const cleaned = phoneValue.replace(/[^\d+]/g, '');
-              // If it starts with 39, add +
-              if (cleaned.startsWith('39')) {
-                phoneValue = '+' + cleaned;
-              } else if (cleaned.startsWith('0')) {
-                // Italian number starting with 0, replace with +39
-                phoneValue = '+39' + cleaned.substring(1);
-              } else if (!cleaned.startsWith('+')) {
-                // Just digits, assume Italian number
-                phoneValue = '+39' + cleaned;
-              } else {
-                phoneValue = cleaned;
-              }
-              // Limit to 13 characters (+39 + 10 digits)
-              if (phoneValue.length > 13) {
-                phoneValue = phoneValue.substring(0, 13);
-              }
+            // Handle phone number autofill - accept value as-is, don't format immediately
+            // Formatting will happen on blur or submit
+            const phoneValue = htmlInput.value.trim();
+            if (phoneValue) {
+              setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
+              autofillFields.push('phoneNumber');
             }
-            setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
-            autofillFields.push('phoneNumber');
           } else if (name?.includes('zona') || name?.includes('zone') || htmlInput.placeholder?.toLowerCase().includes('zona') || autoComplete === 'address-level2') {
             setFormData(prev => ({ ...prev, restaurantZone: htmlInput.value }));
             autofillFields.push('restaurantZone');
@@ -470,34 +452,8 @@ const MultiStepForm = () => {
       [field]: processedValue
     }));
     
-    // Validate phone number format on change and show error if invalid
-    if (field === 'phoneNumber' && typeof processedValue === 'string' && processedValue.trim().length > 0) {
-      const phoneValue = processedValue as string;
-      const isValidPhone = (raw: string) => {
-        // Extract digits only
-        const digits = raw.replace(/\D/g, '');
-        // Check if it has the right number of digits (10 after country code, or 10-11 total)
-        // Accept +39XXXXXXXXXX or just 10-11 digits
-        if (raw.includes('+39')) {
-          const afterCountry = raw.split('+39')[1]?.replace(/\D/g, '') || '';
-          return afterCountry.length === 10;
-        } else {
-          // Just digits - should be 10 (without leading 0) or 11 (with leading 0)
-          const cleanDigits = digits.startsWith('0') ? digits.substring(1) : digits;
-          return cleanDigits.length === 10 && digits.length <= 11;
-        }
-      };
-      
-      // Show error if value is long enough to validate but invalid
-      const digits = phoneValue.replace(/\D/g, '');
-      if (digits.length >= 6 && !isValidPhone(phoneValue)) {
-        trackFormError('inline_validation', 'Invalid phone number format while typing', currentStep);
-        toast({
-          description: "Il numero deve avere esattamente 10 cifre dopo +39",
-          duration: 3000,
-        });
-      }
-    }
+    // Don't validate phone number during typing - only validate on blur or submit
+    // This allows user to type freely without interference
     
     // Validate email format on change
     if (field === 'email' && value.includes('@')) {
@@ -544,7 +500,15 @@ const MultiStepForm = () => {
       case 6:
         return formData.firstName.trim() !== '' && formData.lastName.trim() !== '';
       case 7:
-        return formData.phoneNumber.trim() !== '' && /^\+39\d{10}$/.test(formData.phoneNumber.replace(/\s+/g, ''));
+        // Check if phone has at least 10 digits (with or without +39 prefix)
+        const phone = formData.phoneNumber.trim();
+        if (!phone) return false;
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length < 10) return false;
+        // Take last 10 digits and check format
+        const last10 = phoneDigits.substring(Math.max(0, phoneDigits.length - 10));
+        const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
+        return withoutLeadingZero.length === 10;
       case 8:
         return formData.email.trim() !== '' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
       case 9:
@@ -616,19 +580,47 @@ const MultiStepForm = () => {
       return;
     }
     
-    // Validate phone number format (must be +39 followed by exactly 10 digits)
-    const isValidPhone = (raw: string) => {
-      const compact = raw.replace(/\s+/g, '');
-      const phoneRegex = /^\+39\d{10}$/;
-      return phoneRegex.test(compact);
-    };
-    if (!isValidPhone(formData.phoneNumber)) {
-      trackFormError('validation_error', 'Invalid phone number format', currentStep);
+    // Validate phone number format (must have exactly 10 digits, format to +39 if needed)
+    const phone = formData.phoneNumber.trim();
+    if (!phone) {
+      trackFormError('validation_error', 'Phone number is required', currentStep);
       toast({
-        description: "Il numero deve avere esattamente 10 cifre dopo +39",
+        description: "Il numero di telefono è obbligatorio",
         duration: 3000,
       });
-      return; // Invalid phone number
+      return;
+    }
+    
+    // Extract digits only
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 10) {
+      trackFormError('validation_error', 'Invalid phone number format', currentStep);
+      toast({
+        description: "Il numero deve avere esattamente 10 cifre",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    // Take last 10 digits and format to +39XXXXXXXXXX
+    const last10 = digits.substring(Math.max(0, digits.length - 10));
+    const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
+    if (withoutLeadingZero.length !== 10) {
+      trackFormError('validation_error', 'Invalid phone number format', currentStep);
+      toast({
+        description: "Il numero deve avere esattamente 10 cifre",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    // Format phone number to +39XXXXXXXXXX if not already formatted
+    const formatted = '+39' + withoutLeadingZero;
+    if (formData.phoneNumber !== formatted) {
+      setFormData(prev => ({ ...prev, phoneNumber: formatted }));
+      // Wait a moment for state update, then retry submit
+      setTimeout(() => handleSubmit(), 100);
+      return;
     }
     
     // Validate email format
@@ -1040,12 +1032,12 @@ const MultiStepForm = () => {
                       setFormData(prev => ({ ...prev, phoneNumber: inputValue }));
                     }
                     
-                    // Format phone number: extract digits and format to +39XXXXXXXXXX
+                    // Format phone number only if user has entered enough digits
                     const digits = inputValue.replace(/\D/g, '');
                     if (digits.length >= 10) {
                       // Take last 10 digits (in case there are extra)
                       const last10 = digits.substring(Math.max(0, digits.length - 10));
-                      // Remove leading 0 if present
+                      // Remove leading 0 if present (Italian numbers sometimes start with 0)
                       const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
                       if (withoutLeadingZero.length === 10) {
                         const formatted = '+39' + withoutLeadingZero;
@@ -1056,7 +1048,19 @@ const MultiStepForm = () => {
                           }
                           return prev;
                         });
+                      } else if (digits.length >= 6) {
+                        // Show error if user has entered digits but format is wrong
+                        toast({
+                          description: "Il numero deve avere esattamente 10 cifre",
+                          duration: 3000,
+                        });
                       }
+                    } else if (digits.length > 0 && digits.length < 10) {
+                      // Show error if user has entered some digits but not enough
+                      toast({
+                        description: "Il numero deve avere esattamente 10 cifre",
+                        duration: 3000,
+                      });
                     }
                   }
                 }}
@@ -1065,7 +1069,26 @@ const MultiStepForm = () => {
                 autoComplete="tel"
                 inputMode="tel"
               />
-              <Button type="submit" disabled={!formData.phoneNumber.trim() || !(() => { const compact = formData.phoneNumber.replace(/\s+/g, ''); return /^\+39\d{10}$/.test(compact); })()} className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" size="lg">
+              <Button 
+                type="submit" 
+                disabled={(() => {
+                  const phone = formData.phoneNumber.trim();
+                  if (!phone) return true;
+                  // Extract digits only
+                  const digits = phone.replace(/\D/g, '');
+                  // Check if we have at least 10 digits (with or without +39 prefix)
+                  if (digits.length >= 10) {
+                    // Take last 10 digits
+                    const last10 = digits.substring(Math.max(0, digits.length - 10));
+                    const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
+                    // Must have exactly 10 digits after removing leading 0
+                    return withoutLeadingZero.length !== 10;
+                  }
+                  return true;
+                })()}
+                className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
+                size="lg"
+              >
                 Continua
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
