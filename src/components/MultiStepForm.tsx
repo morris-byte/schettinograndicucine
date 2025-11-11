@@ -44,6 +44,7 @@ interface FormData {
 const MultiStepForm = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [maxStepReached, setMaxStepReached] = useState(1); // Track the maximum step reached
   const [formData, setFormData] = useState<FormData>({
     isRestaurateur: null,
     isInCampania: null,
@@ -136,10 +137,14 @@ const MultiStepForm = () => {
     };
   }, [currentStep, showThankYou]);
 
-  // Reset step start time when step changes
+  // Reset step start time when step changes and update max step reached
   useEffect(() => {
     stepStartTimeRef.current = Date.now();
-  }, [currentStep]);
+    // Update max step reached when moving forward
+    if (currentStep > maxStepReached) {
+      setMaxStepReached(currentStep);
+    }
+  }, [currentStep, maxStepReached]);
 
   // Auto-fill form fields using browser autofill
   useEffect(() => {
@@ -194,7 +199,8 @@ const MultiStepForm = () => {
       setShowThankYou(true);
       return;
     }
-    setCurrentStep(prev => prev + 1);
+    // Use goToStep to maintain maxStepReached tracking
+    goToStep(currentStep + 1);
   };
 
   const handleCatalogAnswer = (answer: boolean) => {
@@ -206,7 +212,8 @@ const MultiStepForm = () => {
     // Track form step
     trackFormStep(currentStep, 'Catalog Question');
     
-    setCurrentStep(prev => prev + 1);
+    // Use goToStep to maintain maxStepReached tracking
+    goToStep(currentStep + 1);
   };
   // Helper functions for field tracking
   const handleFieldFocus = (fieldName: string) => {
@@ -304,19 +311,86 @@ const MultiStepForm = () => {
     return stepNames[step] || 'Unknown Step';
   };
 
+  // Check if a step is completed (has data)
+  const isStepCompleted = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return formData.isRestaurateur !== null;
+      case 2:
+        return formData.isInCampania !== null;
+      case 3:
+        return formData.restaurantZone.trim() !== '';
+      case 4:
+        return formData.restaurantName.trim() !== '';
+      case 5:
+        return formData.equipmentType.trim() !== '';
+      case 6:
+        return formData.firstName.trim() !== '' && formData.lastName.trim() !== '';
+      case 7:
+        return formData.phoneNumber.trim() !== '' && /^\+39\d{10}$/.test(formData.phoneNumber.replace(/\s+/g, ''));
+      case 8:
+        return formData.email.trim() !== '' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+      case 9:
+        return formData.wantsCatalog !== null;
+      case 10:
+        return formData.privacyConsent === true;
+      default:
+        return false;
+    }
+  };
+
+  // Navigate to a specific step (only if already visited or is the next step)
+  const goToStep = (targetStep: number) => {
+    // Allow navigation to:
+    // 1. Current step (no-op)
+    // 2. Steps that have been reached (maxStepReached)
+    // 3. The next step after maxStepReached (if current step is validated)
+    if (targetStep === currentStep) {
+      return; // Already on this step
+    }
+
+    // Allow going back to any previous step
+    if (targetStep < currentStep) {
+      const fromStep = currentStep;
+      const toStep = targetStep;
+      const stepName = getStepName(fromStep);
+      trackBackButton(fromStep, toStep, stepName);
+      setCurrentStep(targetStep);
+      return;
+    }
+
+    // Allow going forward only if:
+    // - Target step is the next step (currentStep + 1)
+    // - Or target step has already been reached (targetStep <= maxStepReached)
+    if (targetStep === currentStep + 1 || targetStep <= maxStepReached) {
+      // Validate current step before moving forward
+      if (targetStep > currentStep && !isStepCompleted(currentStep)) {
+        toast({
+          description: "Completa questo step prima di procedere",
+          duration: 2000,
+        });
+        return;
+      }
+      setCurrentStep(targetStep);
+    }
+  };
+
   const handleNext = () => {
-    setCurrentStep(prev => prev + 1);
+    // Validate current step before proceeding
+    if (!isStepCompleted(currentStep)) {
+      toast({
+        description: "Completa tutti i campi obbligatori prima di procedere",
+        duration: 2000,
+      });
+      return;
+    }
+    goToStep(currentStep + 1);
   };
   
   const handleBack = () => {
-    const fromStep = currentStep;
-    const toStep = currentStep - 1;
-    const stepName = getStepName(fromStep);
-    
-    // Track back button click
-    trackBackButton(fromStep, toStep, stepName);
-    
-    setCurrentStep(prev => prev - 1);
+    if (currentStep > 1) {
+      goToStep(currentStep - 1);
+    }
   };
 
   const handleSubmit = async () => {
@@ -882,8 +956,44 @@ const MultiStepForm = () => {
                 Per avere un preventivo personalizzato
               </p>
             </div>
-            <div className="flex justify-center space-x-2 mt-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(step => <div key={step} className={`w-2 h-2 rounded-full transition-[var(--transition-smooth)] ${step <= currentStep ? 'bg-white' : 'bg-gray-600'}`} />)}
+            <div className="flex justify-center space-x-2 mt-4" role="tablist" aria-label="Progresso del form">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(step => {
+                const isCompleted = isStepCompleted(step);
+                const isReached = step <= maxStepReached;
+                const isCurrent = step === currentStep;
+                const isNextStep = step === currentStep + 1;
+                const canNavigate = step <= maxStepReached || (isNextStep && isStepCompleted(currentStep));
+                
+                return (
+                  <button
+                    key={step}
+                    type="button"
+                    onClick={() => {
+                      if (canNavigate || step < currentStep) {
+                        goToStep(step);
+                      }
+                    }}
+                    disabled={!canNavigate && step > currentStep}
+                    className={`
+                      w-2 h-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#1A1A1A]
+                      ${isCurrent 
+                        ? 'bg-primary scale-125 ring-2 ring-primary ring-offset-2 ring-offset-[#1A1A1A]' 
+                        : isCompleted && isReached
+                        ? 'bg-green-400 hover:bg-green-300 hover:scale-110 cursor-pointer'
+                        : isReached && !isCompleted
+                        ? 'bg-white hover:bg-gray-200 hover:scale-110 cursor-pointer'
+                        : isNextStep && isStepCompleted(currentStep)
+                        ? 'bg-white hover:bg-gray-200 hover:scale-110 cursor-pointer'
+                        : 'bg-gray-600 cursor-not-allowed opacity-50'
+                      }
+                    `}
+                    title={`Step ${step}: ${getStepName(step)}${isCompleted ? ' (Completato)' : isReached ? ' (Visitato)' : ' (Non ancora raggiunto)'}`}
+                    aria-label={`Vai allo step ${step}${isCompleted ? ', completato' : ''}`}
+                    aria-selected={isCurrent}
+                    role="tab"
+                  />
+                );
+              })}
             </div>
           </CardHeader>
           <CardContent>
