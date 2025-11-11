@@ -566,10 +566,6 @@ const MultiStepForm = () => {
                 <h2 className="text-white leading-relaxed font-bold text-sm md:text-base text-center break-words-safe text-pretty">
                   {getThankYouMessage()}
                 </h2>
-                <p className="text-white text-sm md:text-base font-medium leading-relaxed text-center">
-                  Verrai contattato il prima<br />
-                  possibile dal nostro team
-                </p>
                 {thankYouType === 'success' && (
                   <p className="text-white text-sm text-center">
                     Nel frattempo puoi scoprire di più su di noi
