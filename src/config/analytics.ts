@@ -479,3 +479,47 @@ export const trackCoreWebVitals = (metric: string, value: number, id: string) =>
     console.warn('⚠️ GA4 not available for Core Web Vitals tracking');
   }
 };
+
+// Track field completion for Facebook Pixel
+export const trackFieldCompletion = (fieldName: string, fieldValue: string | boolean | null, step?: number) => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    try {
+      // Map field names to readable event names
+      const fieldEventMap: { [key: string]: string } = {
+        'isRestaurateur': 'FieldRestaurateur',
+        'isInCampania': 'FieldCampania',
+        'restaurantZone': 'FieldZona',
+        'restaurantName': 'FieldNomeRistorante',
+        'equipmentType': 'FieldAttrezzatura',
+        'firstName': 'FieldNome',
+        'lastName': 'FieldCognome',
+        'datiPersonali': 'FieldDatiPersonali',
+        'phoneNumber': 'FieldTelefono',
+        'email': 'FieldEmail',
+        'wantsCatalog': 'FieldCatalogo'
+      };
+
+      const eventName = fieldEventMap[fieldName] || `Field${fieldName}`;
+      
+      // Format value for tracking
+      let valueToTrack: string;
+      if (typeof fieldValue === 'boolean') {
+        valueToTrack = fieldValue ? 'Sì' : 'No';
+      } else if (fieldValue === null) {
+        valueToTrack = 'Non specificato';
+      } else {
+        valueToTrack = String(fieldValue);
+      }
+
+      window.fbq('trackCustom', eventName, {
+        field_name: fieldName,
+        field_value: valueToTrack,
+        step_number: step || 'unknown'
+      });
+      
+      console.log(`✅ Facebook Pixel: ${eventName} event tracked (${fieldName} = ${valueToTrack})`);
+    } catch (error) {
+      console.warn('⚠️ Facebook Pixel not available for field completion tracking:', error);
+    }
+  }
+};

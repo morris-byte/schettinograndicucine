@@ -25,7 +25,8 @@ import {
   trackNetworkError,
   trackDeviceInfo,
   trackAutofillUsage,
-  trackCoreWebVitals
+  trackCoreWebVitals,
+  trackFieldCompletion
 } from '@/config/analytics';
 import CompanyServices from '@/components/CompanyServices';
 // import { sendEmailToCommerciali, sendTestEmail } from '../services/sendgridService';
@@ -368,6 +369,9 @@ const MultiStepForm = () => {
     const stepName = field === 'isRestaurateur' ? 'Restaurateur Question' : 'Campania Question';
     trackFormStep(currentStep, stepName);
     
+    // Track field completion for Facebook Pixel
+    trackFieldCompletion(field, answer, currentStep);
+    
     if (!answer) {
       setThankYouType(field === 'isRestaurateur' ? 'not-restaurateur' : 'not-campania');
       setShowThankYou(true);
@@ -393,6 +397,9 @@ const MultiStepForm = () => {
     // Track form step
     trackFormStep(currentStep, 'Catalog Question');
     
+    // Track field completion for Facebook Pixel
+    trackFieldCompletion('wantsCatalog', answer, currentStep);
+    
     // Navigate directly to next step without validation
     // The step is completed by this action, so we can proceed immediately
     const nextStep = currentStep + 1;
@@ -412,6 +419,7 @@ const MultiStepForm = () => {
 
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     let processedValue = value;
+    const previousValue = formData[field];
     
     // Handle boolean values directly
     if (typeof value === 'boolean') {
@@ -419,6 +427,8 @@ const MultiStepForm = () => {
         ...prev,
         [field]: value
       }));
+      // Track field completion for boolean fields
+      trackFieldCompletion(field, value, currentStep);
       return;
     }
     
@@ -442,6 +452,48 @@ const MultiStepForm = () => {
       ...prev,
       [field]: processedValue
     }));
+    
+    // Track field completion when field is completed (has meaningful value)
+    // Only track when transitioning from empty/incomplete to complete
+    if (typeof processedValue === 'string') {
+      const wasEmpty = !previousValue || String(previousValue).trim() === '';
+      const isNowComplete = processedValue.trim() !== '';
+      
+      // For specific fields, track when they reach minimum completion
+      if (field === 'restaurantZone' && isNowComplete && wasEmpty) {
+        trackFieldCompletion(field, processedValue, currentStep);
+      } else if (field === 'restaurantName' && isNowComplete && wasEmpty) {
+        trackFieldCompletion(field, processedValue, currentStep);
+      } else if (field === 'equipmentType' && isNowComplete && wasEmpty) {
+        trackFieldCompletion(field, processedValue, currentStep);
+      } else if (field === 'firstName' && isNowComplete && wasEmpty) {
+        trackFieldCompletion(field, processedValue, currentStep);
+        // Also track "Dati Personali" when both firstName and lastName are complete
+        if (formData.lastName && formData.lastName.trim() !== '') {
+          trackFieldCompletion('datiPersonali', `${processedValue} ${formData.lastName}`, currentStep);
+        }
+      } else if (field === 'lastName' && isNowComplete && wasEmpty) {
+        trackFieldCompletion(field, processedValue, currentStep);
+        // Also track "Dati Personali" when both firstName and lastName are complete
+        if (formData.firstName && formData.firstName.trim() !== '') {
+          trackFieldCompletion('datiPersonali', `${formData.firstName} ${processedValue}`, currentStep);
+        }
+      } else if (field === 'phoneNumber') {
+        // Track phone when it reaches 10 digits (after +39)
+        const digits = processedValue.replace(/\D/g, '').slice(2);
+        const prevDigits = previousValue ? String(previousValue).replace(/\D/g, '').slice(2) : '';
+        if (digits.length === 10 && prevDigits.length !== 10) {
+          trackFieldCompletion(field, processedValue, currentStep);
+        }
+      } else if (field === 'email') {
+        // Track email when it's a valid email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const wasValidEmail = previousValue ? emailRegex.test(String(previousValue)) : false;
+        if (emailRegex.test(processedValue) && !wasValidEmail) {
+          trackFieldCompletion(field, processedValue, currentStep);
+        }
+      }
+    }
     
     // Don't validate phone number during typing - only validate on blur or submit
     // This allows user to type freely without interference
