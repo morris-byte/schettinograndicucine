@@ -188,10 +188,15 @@ const MultiStepForm = () => {
             trackAutofillUsage(['phoneNumber']);
           }
           
-          // Update state with DOM value (autofilled value)
+          // Update state with formatted value (+39 prefix)
           setFormData(prev => {
-            if (prev.phoneNumber !== domValue) {
-              return { ...prev, phoneNumber: domValue };
+            // Extract digits and format with +39
+            const digits = domValue.replace(/\D/g, '');
+            const limitedDigits = digits.slice(0, 10);
+            const formatted = limitedDigits.length > 0 ? '+39' + limitedDigits : '';
+            
+            if (prev.phoneNumber !== formatted) {
+              return { ...prev, phoneNumber: formatted };
             }
             return prev;
           });
@@ -221,11 +226,13 @@ const MultiStepForm = () => {
             setFormData(prev => ({ ...prev, lastName: htmlInput.value }));
             autofillFields.push('lastName');
           } else if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
-            // Handle phone number autofill - accept value as-is, don't format immediately
-            // Formatting will happen on blur or submit
+            // Handle phone number autofill - extract digits and format with +39
             const phoneValue = htmlInput.value.trim();
             if (phoneValue) {
-              setFormData(prev => ({ ...prev, phoneNumber: phoneValue }));
+              const digits = phoneValue.replace(/\D/g, '');
+              const limitedDigits = digits.slice(0, 10);
+              const formatted = limitedDigits.length > 0 ? '+39' + limitedDigits : '';
+              setFormData(prev => ({ ...prev, phoneNumber: formatted }));
               autofillFields.push('phoneNumber');
             }
           } else if (name?.includes('zona') || name?.includes('zone') || htmlInput.placeholder?.toLowerCase().includes('zona') || autoComplete === 'address-level2') {
@@ -415,8 +422,18 @@ const MultiStepForm = () => {
     
     // Process phone number input
     if (field === 'phoneNumber') {
-      // Allow user to type freely - we'll validate and format
-      processedValue = value;
+      // Remove all non-numeric characters
+      const digitsOnly = value.replace(/\D/g, '');
+      
+      // Limit to 10 digits (Italian phone numbers)
+      const limitedDigits = digitsOnly.slice(0, 10);
+      
+      // Format with +39 prefix only if there are digits
+      if (limitedDigits.length > 0) {
+        processedValue = '+39' + limitedDigits;
+      } else {
+        processedValue = '';
+      }
     }
     
     setFormData(prev => ({
@@ -472,15 +489,11 @@ const MultiStepForm = () => {
       case 6:
         return formData.firstName.trim() !== '' && formData.lastName.trim() !== '';
       case 7:
-        // Check if phone has at least 10 digits (with or without +39 prefix)
+        // Check if phone has exactly 10 digits after +39 prefix
         const phone = formData.phoneNumber.trim();
-        if (!phone) return false;
-        const phoneDigits = phone.replace(/\D/g, '');
-        if (phoneDigits.length < 10) return false;
-        // Take last 10 digits and check format
-        const last10 = phoneDigits.substring(Math.max(0, phoneDigits.length - 10));
-        const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
-        return withoutLeadingZero.length === 10;
+        if (!phone || !phone.startsWith('+39')) return false;
+        const phoneDigits = phone.replace(/\D/g, '').slice(2); // Remove +39
+        return phoneDigits.length === 10;
       case 8:
         return formData.email.trim() !== '' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
       case 9:
@@ -552,9 +565,9 @@ const MultiStepForm = () => {
       return;
     }
     
-    // Validate phone number format (must have exactly 10 digits, format to +39 if needed)
+    // Validate phone number format (must have exactly 10 digits after +39)
     const phone = formData.phoneNumber.trim();
-    if (!phone) {
+    if (!phone || !phone.startsWith('+39')) {
       trackFormError('validation_error', 'Phone number is required', currentStep);
       toast({
         description: "Il numero di telefono è obbligatorio",
@@ -563,35 +576,14 @@ const MultiStepForm = () => {
       return;
     }
     
-    // Extract digits only
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 10) {
+    // Check if we have exactly 10 digits after +39
+    const digits = phone.replace(/\D/g, '').slice(2); // Remove +39
+    if (digits.length !== 10) {
       trackFormError('validation_error', 'Invalid phone number format', currentStep);
       toast({
         description: "Il numero deve avere esattamente 10 cifre",
         duration: 3000,
       });
-      return;
-    }
-    
-    // Take last 10 digits and format to +39XXXXXXXXXX
-    const last10 = digits.substring(Math.max(0, digits.length - 10));
-    const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
-    if (withoutLeadingZero.length !== 10) {
-      trackFormError('validation_error', 'Invalid phone number format', currentStep);
-      toast({
-        description: "Il numero deve avere esattamente 10 cifre",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    // Format phone number to +39XXXXXXXXXX if not already formatted
-    const formatted = '+39' + withoutLeadingZero;
-    if (formData.phoneNumber !== formatted) {
-      setFormData(prev => ({ ...prev, phoneNumber: formatted }));
-      // Wait a moment for state update, then retry submit
-      setTimeout(() => handleSubmit(), 100);
       return;
     }
     
@@ -614,9 +606,10 @@ const MultiStepForm = () => {
     
     setIsSubmitting(true);
     
+    // Make webhook URL
+    const makeWebhookUrl = "https://hook.eu2.make.com/dbeari9w8c7p9ft1dhizsuvrd2a98gqi";
+    
     try {
-      // Make webhook URL
-      const makeWebhookUrl = "https://hook.eu2.make.com/dbeari9w8c7p9ft1dhizsuvrd2a98gqi";
       
       const payload = {
         ...formData,
@@ -965,86 +958,91 @@ const MultiStepForm = () => {
               </p>
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-4">
-              <Input 
-                ref={phoneInputRef}
-                id="phoneNumber"
-                name="phoneNumber" 
-                placeholder="Il tuo numero di telefono" 
-                value={formData.phoneNumber || ''}
-                onChange={(e) => {
-                  handleInputChange('phoneNumber', e.target.value);
-                }}
-                onFocus={() => {
-                  handleFieldFocus('phoneNumber');
-                  // Check for autofill multiple times - browser autofill can be delayed
-                  const checkTimes = [0, 50, 100, 200, 400, 600, 1000, 1500];
-                  checkTimes.forEach(delay => {
-                    setTimeout(() => checkPhoneAutofill(), delay);
-                  });
-                }}
-                onBlur={(e) => {
-                  handleFieldBlur('phoneNumber');
-                  const inputValue = e.target.value || '';
-                  
-                  // Final check for autofill - compare DOM value with state
-                  if (inputValue !== formData.phoneNumber) {
-                    setFormData(prev => ({ ...prev, phoneNumber: inputValue }));
-                  }
-                  
-                  // Format phone number only if user has entered enough digits
-                  if (inputValue.trim().length > 0) {
-                    const digits = inputValue.replace(/\D/g, '');
-                    if (digits.length >= 10) {
-                      // Take last 10 digits (in case there are extra)
-                      const last10 = digits.substring(Math.max(0, digits.length - 10));
-                      // Remove leading 0 if present (Italian numbers sometimes start with 0)
-                      const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
-                      if (withoutLeadingZero.length === 10) {
-                        const formatted = '+39' + withoutLeadingZero;
-                        // Update state with formatted value only if different
-                        setFormData(prev => {
-                          if (prev.phoneNumber !== formatted) {
-                            return { ...prev, phoneNumber: formatted };
-                          }
-                          return prev;
-                        });
-                      } else if (digits.length >= 6) {
-                        // Show error if user has entered digits but format is wrong
+              <div className="relative flex items-center">
+                {/* Static +39 prefix */}
+                <div className="absolute left-3 z-10 text-text-primary font-medium select-none pointer-events-none">
+                  +39
+                </div>
+                <Input 
+                  ref={phoneInputRef}
+                  id="phoneNumber"
+                  name="phoneNumber" 
+                  placeholder="3331234567" 
+                  value={formData.phoneNumber ? formData.phoneNumber.replace('+39', '') : ''}
+                  onChange={(e) => {
+                    // Extract only digits and limit to 10
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    // Update with +39 prefix
+                    handleInputChange('phoneNumber', digits);
+                  }}
+                  onFocus={() => {
+                    handleFieldFocus('phoneNumber');
+                    // Check for autofill multiple times - browser autofill can be delayed
+                    const checkTimes = [0, 50, 100, 200, 400, 600, 1000, 1500];
+                    checkTimes.forEach(delay => {
+                      setTimeout(() => checkPhoneAutofill(), delay);
+                    });
+                  }}
+                  onBlur={(e) => {
+                    handleFieldBlur('phoneNumber');
+                    const inputValue = e.target.value || '';
+                    const digits = inputValue.replace(/\D/g, '').slice(0, 10);
+                    
+                    // Final check for autofill - compare DOM value with state
+                    const currentDigits = formData.phoneNumber ? formData.phoneNumber.replace('+39', '') : '';
+                    if (digits !== currentDigits) {
+                      // Process autofilled value: extract digits and format with +39
+                      if (digits.length > 0) {
+                        const formatted = '+39' + digits;
+                        setFormData(prev => ({ ...prev, phoneNumber: formatted }));
+                      } else {
+                        setFormData(prev => ({ ...prev, phoneNumber: '' }));
+                      }
+                    }
+                    
+                    // Validate phone number format on blur
+                    const phone = formData.phoneNumber.trim();
+                    if (phone && phone.startsWith('+39')) {
+                      const phoneDigits = phone.replace(/\D/g, '').slice(2); // Remove +39
+                      if (phoneDigits.length > 0 && phoneDigits.length !== 10) {
                         toast({
                           description: "Il numero deve avere esattamente 10 cifre",
                           duration: 3000,
                         });
                       }
-                    } else if (digits.length > 0 && digits.length < 10) {
-                      // Show error if user has entered some digits but not enough
-                      toast({
-                        description: "Il numero deve avere esattamente 10 cifre",
-                        duration: 3000,
-                      });
                     }
-                  }
-                }}
-                className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary" 
-                type="tel" 
-                autoComplete="tel"
-                inputMode="tel"
-              />
+                  }}
+                  onKeyDown={(e) => {
+                    // Prevent typing +, -, spaces, and other special chars
+                    if (e.key === '+' || e.key === '-' || e.key === ' ' || 
+                        (e.key.length === 1 && /[^0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key))) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text');
+                    // Extract only digits and limit to 10
+                    const digits = pastedText.replace(/\D/g, '').slice(0, 10);
+                    if (digits.length > 0) {
+                      handleInputChange('phoneNumber', digits);
+                    }
+                  }}
+                  className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary pl-12" 
+                  type="tel" 
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                />
+              </div>
               <Button 
                 type="submit" 
                 disabled={(() => {
                   const phone = formData.phoneNumber.trim();
-                  if (!phone) return true;
-                  // Extract digits only
-                  const digits = phone.replace(/\D/g, '');
-                  // Check if we have at least 10 digits (with or without +39 prefix)
-                  if (digits.length >= 10) {
-                    // Take last 10 digits
-                    const last10 = digits.substring(Math.max(0, digits.length - 10));
-                    const withoutLeadingZero = last10.startsWith('0') ? last10.substring(1) : last10;
-                    // Must have exactly 10 digits after removing leading 0
-                    return withoutLeadingZero.length !== 10;
-                  }
-                  return true;
+                  if (!phone || !phone.startsWith('+39')) return true;
+                  // Check if we have exactly 10 digits after +39
+                  const digits = phone.replace(/\D/g, '').slice(2); // Remove +39
+                  return digits.length !== 10;
                 })()}
                 className="w-full bg-primary hover:bg-brand-green-hover text-primary-foreground shadow-[var(--shadow-button)] transition-[var(--transition-smooth)] disabled:opacity-50" 
                 size="lg"
