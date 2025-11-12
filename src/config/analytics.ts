@@ -10,6 +10,7 @@ declare global {
   interface Window {
     gtag: (command: string, targetId?: string | Record<string, unknown>, config?: Record<string, unknown>) => void;
     dataLayer: unknown[];
+    fbq: (command: string, eventName: string, params?: Record<string, unknown>) => void;
   }
 }
 
@@ -31,6 +32,23 @@ export const initGA4 = () => {
   console.warn('⚠️ GA4 not available');
   console.warn('🔍 window object:', typeof window);
   console.warn('🔍 window.gtag:', typeof window?.gtag);
+  return false;
+};
+
+// Initialize and verify Facebook Pixel
+export const initFacebookPixel = () => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    console.log('✅ Facebook Pixel initialized');
+    console.log('🔍 window.fbq function:', typeof window.fbq);
+    
+    // Verify pixel is loaded by checking if fbq is a function
+    if (typeof window.fbq === 'function') {
+      console.log('✅ Facebook Pixel is ready');
+      return true;
+    }
+  }
+  console.warn('⚠️ Facebook Pixel not available');
+  console.warn('🔍 window.fbq:', typeof window?.fbq);
   return false;
 };
 
@@ -98,6 +116,30 @@ export const trackFormSubmission = (formData: FormSubmissionData) => {
   } else {
     console.warn('⚠️ GA4 not available for form tracking');
   }
+  
+  // Track Facebook Pixel events
+  if (typeof window !== 'undefined' && window.fbq) {
+    try {
+      // Track Lead event (standard Facebook event)
+      window.fbq('track', 'Lead', {
+        content_name: formData.restaurantName || 'Contact Form',
+        content_category: 'Form Submission'
+      });
+      
+      // Track custom Confirmed event
+      window.fbq('trackCustom', 'Confirmed', {
+        restaurant_name: formData.restaurantName || 'N/A',
+        is_restaurateur: formData.isRestaurateur ? 'Yes' : 'No',
+        is_in_campania: formData.isInCampania ? 'Yes' : 'No',
+        restaurant_zone: formData.restaurantZone || 'N/A',
+        equipment_type: formData.equipmentType || 'N/A'
+      });
+      
+      console.log('✅ Facebook Pixel: Lead and Confirmed events tracked');
+    } catch (error) {
+      console.warn('⚠️ Facebook Pixel not available for form submission tracking:', error);
+    }
+  }
 };
 
 // Track form step progression
@@ -131,6 +173,19 @@ export const trackButtonClick = (buttonName: string, location: string) => {
     console.log('✅ Button click tracked successfully');
   } else {
     console.warn('⚠️ GA4 not available for button tracking');
+  }
+  
+  // Track Facebook Pixel event
+  if (typeof window !== 'undefined' && window.fbq) {
+    try {
+      window.fbq('trackCustom', 'ClickButton', {
+        button_name: buttonName,
+        button_location: location
+      });
+      console.log('✅ Facebook Pixel: ClickButton event tracked');
+    } catch (error) {
+      console.warn('⚠️ Facebook Pixel not available for button tracking:', error);
+    }
   }
 };
 
@@ -224,6 +279,20 @@ export const trackBackButton = (fromStep: number, toStep: number, stepName: stri
     console.log('✅ Back button tracked successfully');
   } else {
     console.warn('⚠️ GA4 not available for back button tracking');
+  }
+  
+  // Track Facebook Pixel event
+  if (typeof window !== 'undefined' && window.fbq) {
+    try {
+      window.fbq('trackCustom', 'GoBack', {
+        from_step: fromStep,
+        to_step: toStep,
+        step_name: stepName
+      });
+      console.log('✅ Facebook Pixel: GoBack event tracked');
+    } catch (error) {
+      console.warn('⚠️ Facebook Pixel not available for back button tracking:', error);
+    }
   }
 };
 

@@ -12,6 +12,7 @@ import {
   trackFormStep, 
   trackButtonClick, 
   initGA4,
+  initFacebookPixel,
   trackFormError,
   trackFormAbandon,
   trackFormCompletionTime,
@@ -81,6 +82,7 @@ const MultiStepForm = () => {
   // Initialize GA4 and advanced tracking on component mount
   useEffect(() => {
     initGA4();
+    initFacebookPixel();
     
     // Reset tracking timers
     formStartTimeRef.current = Date.now();
