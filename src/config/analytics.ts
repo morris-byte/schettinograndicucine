@@ -4,15 +4,30 @@ export const GA4_MEASUREMENT_ID = 'G-CWVFE2B6PJ';
 // Google Ads Conversion ID
 export const GOOGLE_ADS_ID = 'AW-17544893918';
 
+// Google Tag Manager Container ID (da configurare)
+// Esempio: 'GTM-XXXXXXX'
+export const GTM_CONTAINER_ID = process.env.VITE_GTM_CONTAINER_ID || '';
+
 // Declare gtag function for TypeScript
 // gtag has a flexible signature: gtag(command, targetId?, config?)
 declare global {
   interface Window {
     gtag: (command: string, targetId?: string | Record<string, unknown>, config?: Record<string, unknown>) => void;
-    dataLayer: unknown[];
+    dataLayer: Array<Record<string, unknown>>;
     fbq: (command: string, eventName: string, params?: Record<string, unknown>) => void;
   }
 }
+
+// Helper function to push events to GTM dataLayer
+const pushToDataLayer = (eventName: string, eventData?: Record<string, unknown>) => {
+  if (typeof window !== 'undefined' && window.dataLayer) {
+    window.dataLayer.push({
+      event: eventName,
+      ...eventData
+    });
+    console.log(`✅ GTM: ${eventName} event pushed to dataLayer`, eventData);
+  }
+};
 
 // Initialize GA4
 export const initGA4 = () => {
@@ -140,6 +155,20 @@ export const trackFormSubmission = (formData: FormSubmissionData) => {
       console.warn('⚠️ Facebook Pixel not available for form submission tracking:', error);
     }
   }
+  
+  // Track GTM events
+  pushToDataLayer('Lead', {
+    content_name: formData.restaurantName || 'Contact Form',
+    content_category: 'Form Submission'
+  });
+  
+  pushToDataLayer('Confirmed', {
+    restaurant_name: formData.restaurantName || 'N/A',
+    is_restaurateur: formData.isRestaurateur ? 'Yes' : 'No',
+    is_in_campania: formData.isInCampania ? 'Yes' : 'No',
+    restaurant_zone: formData.restaurantZone || 'N/A',
+    equipment_type: formData.equipmentType || 'N/A'
+  });
 };
 
 // Track form step progression
@@ -187,6 +216,12 @@ export const trackButtonClick = (buttonName: string, location: string) => {
       console.warn('⚠️ Facebook Pixel not available for button tracking:', error);
     }
   }
+  
+  // Track GTM event
+  pushToDataLayer('ClickButton', {
+    button_name: buttonName,
+    button_location: location
+  });
 };
 
 // Track page views
@@ -294,6 +329,13 @@ export const trackBackButton = (fromStep: number, toStep: number, stepName: stri
       console.warn('⚠️ Facebook Pixel not available for back button tracking:', error);
     }
   }
+  
+  // Track GTM event
+  pushToDataLayer('GoBack', {
+    from_step: fromStep,
+    to_step: toStep,
+    step_name: stepName
+  });
 };
 
 // Track outbound link clicks
@@ -539,4 +581,11 @@ export const trackFieldCompletion = (fieldName: string, fieldValue: string | boo
       console.warn('⚠️ Facebook Pixel not available for field completion tracking:', error);
     }
   }
+  
+  // Track GTM event
+  pushToDataLayer(eventName, {
+    field_name: fieldName,
+    field_value: valueToTrack,
+    step_number: step || 'unknown'
+  });
 };
