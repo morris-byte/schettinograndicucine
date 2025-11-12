@@ -499,7 +499,24 @@ export const trackFieldCompletion = (fieldName: string, fieldValue: string | boo
         'wantsCatalog': 'FieldCatalogo'
       };
 
-      const eventName = fieldEventMap[fieldName] || `Field${fieldName}`;
+      let eventName = fieldEventMap[fieldName] || `Field${fieldName}`;
+      
+      // For boolean fields (isRestaurateur, isInCampania, wantsCatalog), create separate events for Yes/No
+      if (typeof fieldValue === 'boolean') {
+        const suffix = fieldValue ? '_Yes' : '_No';
+        
+        // Map to specific event names
+        if (fieldName === 'isRestaurateur') {
+          eventName = `FieldRestaurateur${suffix}`;
+        } else if (fieldName === 'isInCampania') {
+          eventName = `FieldCampania${suffix}`;
+        } else if (fieldName === 'wantsCatalog') {
+          eventName = `FieldCatalogo${suffix}`;
+        } else {
+          // For other boolean fields, use default naming
+          eventName = `${eventName}${suffix}`;
+        }
+      }
       
       // Format value for tracking
       let valueToTrack: string;
