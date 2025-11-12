@@ -24,10 +24,6 @@
       fbq('init', '1159186469692428'); 
       fbq('track', 'PageView');
     </script>
-    <noscript>
-      <img height="1" width="1" 
-      src="https://www.facebook.com/tr?id=1159186469692428&ev=PageView&noscript=1"/>
-    </noscript>
     <!-- End Facebook Pixel Code -->
     
     <meta charset="UTF-8" />
@@ -58,6 +54,12 @@
   </head>
 
   <body>
+    <!-- Facebook Pixel noscript fallback -->
+    <noscript>
+      <img height="1" width="1" 
+      src="https://www.facebook.com/tr?id=1159186469692428&ev=PageView&noscript=1"/>
+    </noscript>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
