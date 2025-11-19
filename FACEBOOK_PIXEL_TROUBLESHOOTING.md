@@ -74,3 +74,5 @@ Gli eventi personalizzati (ClickButton, GoBack, Confirmed) possono richiedere fi
 - Il tracking funziona sia per Google Analytics che per Facebook Pixel
 - Tutti gli eventi includono logging nella console per il debug
 
+
+

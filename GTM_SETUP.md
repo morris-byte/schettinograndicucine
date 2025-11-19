@@ -200,3 +200,5 @@ Una volta testato tutto:
 4. **Versioning**: Gestione delle versioni dei tag
 5. **Flessibilità**: Aggiungi nuovi tag senza deploy
 
+
+

@@ -524,52 +524,52 @@ export const trackCoreWebVitals = (metric: string, value: number, id: string) =>
 
 // Track field completion for Facebook Pixel
 export const trackFieldCompletion = (fieldName: string, fieldValue: string | boolean | null, step?: number) => {
+  // Map field names to readable event names
+  const fieldEventMap: { [key: string]: string } = {
+    'isRestaurateur': 'FieldRestaurateur',
+    'isInCampania': 'FieldCampania',
+    'restaurantZone': 'FieldZona',
+    'restaurantName': 'FieldNomeRistorante',
+    'equipmentType': 'FieldAttrezzatura',
+    'firstName': 'FieldNome',
+    'lastName': 'FieldCognome',
+    'datiPersonali': 'FieldDatiPersonali',
+    'phoneNumber': 'FieldTelefono',
+    'email': 'FieldEmail',
+    'wantsCatalog': 'FieldCatalogo'
+  };
+
+  let eventName = fieldEventMap[fieldName] || `Field${fieldName}`;
+  
+  // For boolean fields (isRestaurateur, isInCampania, wantsCatalog), create separate events for Yes/No
+  if (typeof fieldValue === 'boolean') {
+    const suffix = fieldValue ? '_Yes' : '_No';
+    
+    // Map to specific event names
+    if (fieldName === 'isRestaurateur') {
+      eventName = `FieldRestaurateur${suffix}`;
+    } else if (fieldName === 'isInCampania') {
+      eventName = `FieldCampania${suffix}`;
+    } else if (fieldName === 'wantsCatalog') {
+      eventName = `FieldCatalogo${suffix}`;
+    } else {
+      // For other boolean fields, use default naming
+      eventName = `${eventName}${suffix}`;
+    }
+  }
+  
+  // Format value for tracking
+  let valueToTrack: string;
+  if (typeof fieldValue === 'boolean') {
+    valueToTrack = fieldValue ? 'Sì' : 'No';
+  } else if (fieldValue === null) {
+    valueToTrack = 'Non specificato';
+  } else {
+    valueToTrack = String(fieldValue);
+  }
+
   if (typeof window !== 'undefined' && window.fbq) {
     try {
-      // Map field names to readable event names
-      const fieldEventMap: { [key: string]: string } = {
-        'isRestaurateur': 'FieldRestaurateur',
-        'isInCampania': 'FieldCampania',
-        'restaurantZone': 'FieldZona',
-        'restaurantName': 'FieldNomeRistorante',
-        'equipmentType': 'FieldAttrezzatura',
-        'firstName': 'FieldNome',
-        'lastName': 'FieldCognome',
-        'datiPersonali': 'FieldDatiPersonali',
-        'phoneNumber': 'FieldTelefono',
-        'email': 'FieldEmail',
-        'wantsCatalog': 'FieldCatalogo'
-      };
-
-      let eventName = fieldEventMap[fieldName] || `Field${fieldName}`;
-      
-      // For boolean fields (isRestaurateur, isInCampania, wantsCatalog), create separate events for Yes/No
-      if (typeof fieldValue === 'boolean') {
-        const suffix = fieldValue ? '_Yes' : '_No';
-        
-        // Map to specific event names
-        if (fieldName === 'isRestaurateur') {
-          eventName = `FieldRestaurateur${suffix}`;
-        } else if (fieldName === 'isInCampania') {
-          eventName = `FieldCampania${suffix}`;
-        } else if (fieldName === 'wantsCatalog') {
-          eventName = `FieldCatalogo${suffix}`;
-        } else {
-          // For other boolean fields, use default naming
-          eventName = `${eventName}${suffix}`;
-        }
-      }
-      
-      // Format value for tracking
-      let valueToTrack: string;
-      if (typeof fieldValue === 'boolean') {
-        valueToTrack = fieldValue ? 'Sì' : 'No';
-      } else if (fieldValue === null) {
-        valueToTrack = 'Non specificato';
-      } else {
-        valueToTrack = String(fieldValue);
-      }
-
       window.fbq('trackCustom', eventName, {
         field_name: fieldName,
         field_value: valueToTrack,
