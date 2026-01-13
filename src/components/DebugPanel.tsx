@@ -10,8 +10,25 @@ interface LogEntry {
 }
 
 const DebugPanel = () => {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  // Carica i log salvati da localStorage all'avvio
+  const loadLogsFromStorage = (): LogEntry[] => {
+    try {
+      const saved = localStorage.getItem('debug-panel-logs');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const [logs, setLogs] = useState<LogEntry[]>(loadLogsFromStorage);
+  const [isOpen, setIsOpen] = useState(() => {
+    // Mantieni lo stato aperto/chiuso da localStorage
+    try {
+      return localStorage.getItem('debug-panel-open') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [isMinimized, setIsMinimized] = useState(false);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -34,23 +51,43 @@ const DebugPanel = () => {
           message,
           data: args.length > 1 ? args.slice(1) : undefined,
         };
-        // Mantieni solo gli ultimi 100 log
-        return [...prev.slice(-99), newLog];
+        // Mantieni solo gli ultimi 200 log (aumentato per debug)
+        const newLogs = [...prev.slice(-199), newLog];
+        // Salva in localStorage per persistere anche dopo re-render
+        try {
+          localStorage.setItem('debug-panel-logs', JSON.stringify(newLogs));
+        } catch (e) {
+          // Ignora errori di localStorage (quota esaurita, ecc.)
+        }
+        return newLogs;
       });
     };
 
     console.log = (...args: any[]) => {
       originalLog(...args);
-      if (args.some(arg => 
-        typeof arg === 'string' && (
-          arg.includes('firstName') || 
-          arg.includes('lastName') || 
-          arg.includes('Email') || 
-          arg.includes('DEBUG') ||
-          arg.includes('✅') ||
-          arg.includes('❌')
-        )
-      )) {
+      // Cattura TUTTI i log importanti, inclusi quelli di Make
+      const shouldLog = args.some(arg => {
+        if (typeof arg !== 'string') return false;
+        const lowerArg = arg.toLowerCase();
+        return (
+          lowerArg.includes('firstname') || 
+          lowerArg.includes('lastname') || 
+          lowerArg.includes('email') || 
+          lowerArg.includes('debug') ||
+          lowerArg.includes('make') ||
+          lowerArg.includes('webhook') ||
+          lowerArg.includes('payload') ||
+          lowerArg.includes('invio') ||
+          lowerArg.includes('risposta') ||
+          lowerArg.includes('✅') ||
+          lowerArg.includes('❌') ||
+          lowerArg.includes('📤') ||
+          lowerArg.includes('📥') ||
+          lowerArg.includes('📧') ||
+          lowerArg.includes('🔍')
+        );
+      });
+      if (shouldLog) {
         addLog('log', ...args);
       }
     };
@@ -87,6 +124,11 @@ const DebugPanel = () => {
 
   const clearLogs = () => {
     setLogs([]);
+    try {
+      localStorage.removeItem('debug-panel-logs');
+    } catch {
+      // Ignora errori
+    }
   };
 
   const getLogColor = (type: LogEntry['type']) => {
@@ -98,13 +140,23 @@ const DebugPanel = () => {
     }
   };
 
+  // Salva lo stato aperto/chiuso in localStorage
+  const handleToggleOpen = (open: boolean) => {
+    setIsOpen(open);
+    try {
+      localStorage.setItem('debug-panel-open', String(open));
+    } catch {
+      // Ignora errori
+    }
+  };
+
   if (!isOpen) {
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => handleToggleOpen(true)}
         className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-medium"
       >
-        🔍 Debug Logs
+        🔍 Debug Logs {logs.length > 0 && `(${logs.length})`}
       </button>
     );
   }
@@ -131,7 +183,7 @@ const DebugPanel = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsOpen(false)}
+            onClick={() => handleToggleOpen(false)}
             className="h-6 w-6 p-0 text-gray-400 hover:text-white"
           >
             <X size={14} />
