@@ -73,9 +73,25 @@ const DebugPanel = () => {
 
     console.log = (...args: any[]) => {
       originalLog(...args);
-      // Cattura TUTTI i log importanti, inclusi quelli di Make
+      // Cattura TUTTI i log - più permissivo per debug
       const shouldLog = args.some(arg => {
-        if (typeof arg !== 'string') return false;
+        if (typeof arg !== 'string') {
+          // Se è un oggetto, controlla se contiene chiavi interessanti
+          if (typeof arg === 'object' && arg !== null) {
+            const str = JSON.stringify(arg).toLowerCase();
+            return (
+              str.includes('firstname') || 
+              str.includes('lastname') || 
+              str.includes('email') || 
+              str.includes('make') ||
+              str.includes('webhook') ||
+              str.includes('payload') ||
+              str.includes('status') ||
+              str.includes('response')
+            );
+          }
+          return false;
+        }
         const lowerArg = arg.toLowerCase();
         return (
           lowerArg.includes('firstname') || 
@@ -87,14 +103,18 @@ const DebugPanel = () => {
           lowerArg.includes('payload') ||
           lowerArg.includes('invio') ||
           lowerArg.includes('risposta') ||
+          lowerArg.includes('status') ||
+          lowerArg.includes('response') ||
           lowerArg.includes('✅') ||
           lowerArg.includes('❌') ||
+          lowerArg.includes('⚠️') ||
           lowerArg.includes('📤') ||
           lowerArg.includes('📥') ||
           lowerArg.includes('📧') ||
           lowerArg.includes('🔍')
         );
       });
+      // Se anche solo uno degli argomenti matcha, logga tutto
       if (shouldLog) {
         addLog('log', ...args);
       }

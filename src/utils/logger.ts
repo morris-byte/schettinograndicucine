@@ -1,14 +1,18 @@
-// Logger utility to conditionally log based on environment
+// Logger utility - sempre logga per debug (anche in produzione per ora)
+// TODO: Rimuovere in produzione quando tutto funziona
 const isDev = import.meta.env.DEV;
+const FORCE_LOGGING = true; // Forza logging anche in produzione per debug
 
 export const logger = {
   log: (...args: unknown[]) => {
-    if (isDev) {
+    // Logga sempre per debug (anche in produzione)
+    if (isDev || FORCE_LOGGING) {
       console.log(...args);
     }
   },
   warn: (...args: unknown[]) => {
-    if (isDev) {
+    // Logga sempre i warning (anche in produzione)
+    if (isDev || FORCE_LOGGING) {
       console.warn(...args);
     }
   },
@@ -17,7 +21,8 @@ export const logger = {
     console.error(...args);
   },
   info: (...args: unknown[]) => {
-    if (isDev) {
+    // Logga sempre per debug (anche in produzione)
+    if (isDev || FORCE_LOGGING) {
       console.info(...args);
     }
   },
