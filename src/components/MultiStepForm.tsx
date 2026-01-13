@@ -332,13 +332,85 @@ const MultiStepForm = () => {
     const makeWebhookUrl = getMakeWebhookUrl();
 
     try {
+      // Validazione FINALE direttamente sui valori prima di creare il payload
+      // Leggi direttamente dal DOM per essere sicuri
+      const firstNameInput = document.querySelector('#firstName') as HTMLInputElement;
+      const lastNameInput = document.querySelector('#lastName') as HTMLInputElement;
+      
+      let finalFirstName = cleanFormData.firstName || '';
+      let finalLastName = cleanFormData.lastName || '';
+      
+      // Se esiste l'input nel DOM, leggi direttamente da lì (più affidabile)
+      if (firstNameInput) {
+        const domValue = firstNameInput.value || '';
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(domValue.trim()) || domValue.includes('@');
+        if (isEmail) {
+          logger.warn('⚠️ Email trovata in firstName DOM, uso valore vuoto');
+          finalFirstName = '';
+          firstNameInput.value = '';
+        } else {
+          finalFirstName = domValue.trim();
+        }
+      }
+      
+      if (lastNameInput) {
+        const domValue = lastNameInput.value || '';
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(domValue.trim()) || domValue.includes('@');
+        if (isEmail) {
+          logger.warn('⚠️ Email trovata in lastName DOM, uso valore vuoto');
+          finalLastName = '';
+          lastNameInput.value = '';
+        } else {
+          finalLastName = domValue.trim();
+        }
+      }
+      
+      // Validazione finale: se dopo tutto questo firstName o lastName contengono ancora email, blocca
+      const isFirstNameEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalFirstName.trim()) || finalFirstName.includes('@');
+      const isLastNameEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalLastName.trim()) || finalLastName.includes('@');
+      
+      if (isFirstNameEmail || isLastNameEmail) {
+        logger.error('❌ Email ancora presente dopo tutte le validazioni!');
+        toast({
+          title: "Errore",
+          description: "I campi Nome e Cognome non possono contenere email. Inserisci i tuoi dati corretti.",
+          duration: 5000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Validazione: firstName e lastName devono essere presenti
+      if (!finalFirstName || finalFirstName.trim() === '') {
+        toast({
+          description: "Inserisci il tuo nome",
+          duration: 3000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!finalLastName || finalLastName.trim() === '') {
+        toast({
+          description: "Inserisci il tuo cognome",
+          duration: 3000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       const payload: FormSubmissionPayload = {
         ...cleanFormData,
+        firstName: finalFirstName.trim(),
+        lastName: finalLastName.trim(),
         timestamp: new Date().toISOString(),
         source: 'Schettino Form',
         catalog_request: cleanFormData.wantsCatalog ? 'Sì' : 'No',
         phone_formatted: cleanFormData.phoneNumber || '',
-        full_name: `${cleanFormData.firstName.trim()} ${cleanFormData.lastName.trim()}`.trim(),
+        full_name: `${finalFirstName.trim()} ${finalLastName.trim()}`.trim(),
         privacy_consent: cleanFormData.privacyConsent ? 'Sì' : 'No',
       };
 
