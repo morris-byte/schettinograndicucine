@@ -33,40 +33,38 @@ export const Step6PersonalData = ({
     };
     
     const checkAndCleanInputs = () => {
-      // Controlla firstName - controllo AGRESSIVO
+      // IMPORTANTE: Questo controllo serve SOLO per pulire email dal DOM
+      // NON aggiorna lo stato quando l'utente sta digitando - quello lo fa onChange
+      // Se aggiornassimo lo stato qui, potremmo sovrascrivere l'input manuale dell'utente
+      
+      // Controlla firstName - SOLO pulizia, NO sincronizzazione stato
       if (firstNameInputRef.current) {
         const domValue = firstNameInputRef.current.value || '';
         if (isEmail(domValue)) {
-          // Email trovata! Pulisci IMMEDIATAMENTE
+          // Email trovata! Pulisci IMMEDIATAMENTE DOM e stato
           console.warn('🚫 Email rilevata in firstName DOM, pulizia immediata');
           firstNameInputRef.current.value = '';
           onInputChange('firstName', '');
           // Forza il focus per mostrare all'utente che il campo è stato pulito
           firstNameInputRef.current.focus();
-        } else if (domValue.trim() !== '' && !isEmail(domValue)) {
-          // Se il valore DOM è valido (non email) e diverso dallo stato, aggiorna lo stato
-          if (domValue !== formData.firstName) {
-            onInputChange('firstName', domValue);
-          }
         }
+        // NON aggiornare lo stato se il DOM è diverso - l'utente potrebbe stare ancora digitando
+        // L'onChange gestisce l'aggiornamento dello stato quando l'utente digita
       }
       
-      // Controlla lastName - controllo AGRESSIVO
+      // Controlla lastName - SOLO pulizia, NO sincronizzazione stato
       if (lastNameInputRef.current) {
         const domValue = lastNameInputRef.current.value || '';
         if (isEmail(domValue)) {
-          // Email trovata! Pulisci IMMEDIATAMENTE
+          // Email trovata! Pulisci IMMEDIATAMENTE DOM e stato
           console.warn('🚫 Email rilevata in lastName DOM, pulizia immediata');
           lastNameInputRef.current.value = '';
           onInputChange('lastName', '');
           // Forza il focus per mostrare all'utente che il campo è stato pulito
           lastNameInputRef.current.focus();
-        } else if (domValue.trim() !== '' && !isEmail(domValue)) {
-          // Se il valore DOM è valido (non email) e diverso dallo stato, aggiorna lo stato
-          if (domValue !== formData.lastName) {
-            onInputChange('lastName', domValue);
-          }
         }
+        // NON aggiornare lo stato se il DOM è diverso - l'utente potrebbe stare ancora digitando
+        // L'onChange gestisce l'aggiornamento dello stato quando l'utente digita
       }
     };
     
