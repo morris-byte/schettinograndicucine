@@ -129,7 +129,15 @@ export const Step6PersonalData = ({
           Come possiamo chiamarti?
         </p>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); onNext(); }} className="space-y-4">
+      <form 
+        onSubmit={(e) => { 
+          e.preventDefault(); 
+          e.stopPropagation();
+          onNext(); 
+        }} 
+        className="space-y-4"
+        noValidate
+      >
         <div className="grid grid-cols-2 gap-3">
           <Input
             ref={firstNameInputRef}

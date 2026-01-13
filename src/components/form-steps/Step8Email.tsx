@@ -40,7 +40,15 @@ export const Step8Email = ({
           Per ricevere la risposta alla tua richiesta
         </p>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); onNext(); }} className="space-y-4">
+      <form 
+        onSubmit={(e) => { 
+          e.preventDefault(); 
+          e.stopPropagation();
+          onNext(); 
+        }} 
+        className="space-y-4"
+        noValidate
+      >
         <div className="space-y-2">
           <Input
             id="email"

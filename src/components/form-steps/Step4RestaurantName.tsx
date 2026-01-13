@@ -25,7 +25,15 @@ export const Step4RestaurantName = ({
           Aiutaci a conoscerti meglio
         </p>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); onNext(); }} className="space-y-4">
+      <form 
+        onSubmit={(e) => { 
+          e.preventDefault(); 
+          e.stopPropagation();
+          onNext(); 
+        }} 
+        className="space-y-4"
+        noValidate
+      >
         <Input
           id="restaurantName"
           name="restaurantName"

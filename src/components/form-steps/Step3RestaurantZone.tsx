@@ -29,7 +29,15 @@ export const Step3RestaurantZone = ({
           Indica la città o paese in cui operi
         </p>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); onNext(); }} className="space-y-4">
+      <form 
+        onSubmit={(e) => { 
+          e.preventDefault(); 
+          e.stopPropagation();
+          onNext(); 
+        }} 
+        className="space-y-4"
+        noValidate
+      >
         <Input
           id="restaurantZone"
           name="restaurantZone"

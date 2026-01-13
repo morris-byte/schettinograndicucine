@@ -30,7 +30,15 @@ export const Step10Confirmation = ({
           Ultimo passaggio per completare la richiesta
         </p>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
+      <form 
+        onSubmit={(e) => { 
+          e.preventDefault(); 
+          e.stopPropagation();
+          onSubmit(); 
+        }} 
+        className="space-y-4"
+        noValidate
+      >
         <div className="flex items-start space-x-3 p-4 bg-input rounded-lg border border-border">
           <button
             type="button"

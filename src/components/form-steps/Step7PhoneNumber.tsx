@@ -67,7 +67,15 @@ export const Step7PhoneNumber = ({
           Per essere contattato rapidamente
         </p>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); onNext(); }} className="space-y-4">
+      <form 
+        onSubmit={(e) => { 
+          e.preventDefault(); 
+          e.stopPropagation();
+          onNext(); 
+        }} 
+        className="space-y-4"
+        noValidate
+      >
         <div className="relative flex items-center">
           <div className="absolute left-3 z-10 text-text-primary font-medium select-none pointer-events-none">
             +39
