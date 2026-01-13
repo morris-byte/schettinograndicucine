@@ -40,24 +40,32 @@ const DebugPanel = () => {
     const originalInfo = console.info;
 
     const addLog = (type: LogEntry['type'], ...args: any[]) => {
-      const message = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-      ).join(' ');
+      const message = args.map(arg => {
+        if (typeof arg === 'object') {
+          try {
+            return JSON.stringify(arg, null, 2);
+          } catch {
+            return String(arg);
+          }
+        }
+        return String(arg);
+      }).join(' ');
       
+      const newLog: LogEntry = {
+        timestamp: new Date().toLocaleTimeString('it-IT'),
+        type,
+        message,
+        data: args.length > 1 ? args.slice(1) : undefined,
+      };
+      
+      // Aggiorna lo stato
       setLogs(prev => {
-        const newLog: LogEntry = {
-          timestamp: new Date().toLocaleTimeString('it-IT'),
-          type,
-          message,
-          data: args.length > 1 ? args.slice(1) : undefined,
-        };
-        // Mantieni solo gli ultimi 200 log (aumentato per debug)
         const newLogs = [...prev.slice(-199), newLog];
-        // Salva in localStorage per persistere anche dopo re-render
+        // Salva IMMEDIATAMENTE in localStorage
         try {
           localStorage.setItem('debug-panel-logs', JSON.stringify(newLogs));
         } catch (e) {
-          // Ignora errori di localStorage (quota esaurita, ecc.)
+          console.warn('Errore salvataggio log in localStorage:', e);
         }
         return newLogs;
       });

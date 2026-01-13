@@ -34,7 +34,6 @@ import {
   Step10Confirmation,
   ThankYouPage,
 } from './form-steps';
-import DebugPanel from './DebugPanel';
 
 const INITIAL_FORM_DATA: FormData = {
   isRestaurateur: null,
@@ -921,7 +920,6 @@ const MultiStepForm = () => {
 
         <CompanyServices />
       </div>
-      <DebugPanel />
     </div>
   );
 };
