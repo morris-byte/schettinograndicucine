@@ -20,6 +20,7 @@ import { useFormTracking } from '@/hooks/useFormTracking';
 import { FormData, ThankYouType, FormSubmissionPayload } from '@/types/form';
 import { isStepCompleted, getStepName, validatePhoneNumber, validateEmail, formatPhoneNumber } from '@/utils/formValidation';
 import { logger } from '@/utils/logger';
+import { getMakeWebhookUrl, getSupabaseFunctionUrl } from '@/config/env';
 import {
   Step1Restaurateur,
   Step2Campania,
@@ -57,6 +58,8 @@ const MultiStepForm = () => {
   const [thankYouType, setThankYouType] = useState<ThankYouType>('success');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const submitAttemptRef = useRef<number>(0);
+  const lastSubmitTimeRef = useRef<number>(0);
 
   const phoneInputRef = useRef<HTMLInputElement>(null);
 
@@ -220,7 +223,23 @@ const MultiStepForm = () => {
   };
 
   const handleSubmit = async () => {
+    // Prevent multiple submissions
     if (isSubmitting || isSubmitted) return;
+    
+    // Rate limiting: prevent submissions within 2 seconds
+    const now = Date.now();
+    const timeSinceLastSubmit = now - lastSubmitTimeRef.current;
+    if (timeSinceLastSubmit < 2000) {
+      toast({
+        description: "Attendi un momento prima di inviare di nuovo",
+        duration: 2000,
+      });
+      return;
+    }
+    
+    // Track submission attempt
+    submitAttemptRef.current++;
+    lastSubmitTimeRef.current = now;
 
     if (!validatePhoneNumber(formData.phoneNumber)) {
       trackFormError('validation_error', 'Invalid phone number format', currentStep);
@@ -247,7 +266,7 @@ const MultiStepForm = () => {
 
     setIsSubmitting(true);
 
-    const makeWebhookUrl = "https://hook.eu2.make.com/dbeari9w8c7p9ft1dhizsuvrd2a98gqi";
+    const makeWebhookUrl = getMakeWebhookUrl();
 
     try {
       const payload: FormSubmissionPayload = {
@@ -283,7 +302,7 @@ const MultiStepForm = () => {
 
         // Send email notification
         try {
-          const emailResponse = await fetch('https://laxbglhrrcbrxpnpvcob.supabase.co/functions/v1/send-test-email', {
+          const emailResponse = await fetch(getSupabaseFunctionUrl(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
@@ -473,9 +492,11 @@ const MultiStepForm = () => {
                       }
                     `}
                     title={`Step ${step}: ${getStepName(step)}${isCompleted ? ' (Completato)' : isReached ? ' (Visitato)' : ' (Non ancora raggiunto)'}`}
-                    aria-label={`Vai allo step ${step}${isCompleted ? ', completato' : ''}`}
+                    aria-label={`Vai allo step ${step}: ${getStepName(step)}${isCompleted ? ', completato' : isReached ? ', visitato' : ', non ancora raggiunto'}`}
                     aria-selected={isCurrent}
+                    aria-current={isCurrent ? 'step' : undefined}
                     role="tab"
+                    aria-controls={`step-${step}-content`}
                   />
                 );
               })}

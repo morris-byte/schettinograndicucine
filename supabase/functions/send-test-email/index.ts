@@ -3,10 +3,37 @@ import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+// Allowed origins - update with your production domain
+const ALLOWED_ORIGINS = [
+  "https://schettinograndicucine-ten.vercel.app",
+  "https://schettinograndicucine.it",
+  "http://localhost:8080",
+  "http://localhost:5173",
+];
+
+// Sanitize HTML to prevent XSS
+const sanitizeHtml = (input: string | null | undefined): string => {
+  if (!input) return '';
+  return String(input)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+};
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) 
+    ? origin 
+    : ALLOWED_ORIGINS[0]; // Default to first allowed origin
+  
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
 };
 
 interface LeadData {
@@ -23,6 +50,9 @@ interface LeadData {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -89,15 +119,15 @@ const handler = async (req: Request): Promise<Response> => {
                 <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
                   <div style="margin-bottom: 12px;">
                     <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 80px;">Nome:</span>
-                    <span style="color: #111827; font-weight: 600;">${leadData.firstName} ${leadData.lastName}</span>
+                    <span style="color: #111827; font-weight: 600;">${sanitizeHtml(leadData.firstName)} ${sanitizeHtml(leadData.lastName)}</span>
                   </div>
                   <div style="margin-bottom: 12px;">
                     <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 80px;">Email:</span>
-                    <span style="color: #111827;">${leadData.email}</span>
+                    <span style="color: #111827;">${sanitizeHtml(leadData.email)}</span>
                   </div>
                   <div style="margin-bottom: 0;">
                     <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 80px;">Telefono:</span>
-                    <span style="color: #111827; font-weight: 600;">${leadData.phoneNumber}</span>
+                    <span style="color: #111827; font-weight: 600;">${sanitizeHtml(leadData.phoneNumber)}</span>
                   </div>
                 </div>
               </div>
@@ -108,15 +138,15 @@ const handler = async (req: Request): Promise<Response> => {
                 <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
                   <div style="margin-bottom: 12px;">
                     <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 120px;">Ristorante:</span>
-                    <span style="color: #111827; font-weight: 600;">${leadData.restaurantName}</span>
+                    <span style="color: #111827; font-weight: 600;">${sanitizeHtml(leadData.restaurantName)}</span>
                   </div>
                   <div style="margin-bottom: 12px;">
                     <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 120px;">Zona:</span>
-                    <span style="color: #111827;">${leadData.restaurantZone}</span>
+                    <span style="color: #111827;">${sanitizeHtml(leadData.restaurantZone)}</span>
                   </div>
                   <div style="margin-bottom: 0;">
                     <span style="color: #6b7280; font-weight: 500; display: inline-block; width: 120px;">Attrezzatura:</span>
-                    <span style="color: #111827;">${leadData.equipmentType}</span>
+                    <span style="color: #111827;">${sanitizeHtml(leadData.equipmentType)}</span>
                   </div>
                 </div>
               </div>
@@ -151,7 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
           "vincenzopetronebiz@gmail.com",
           "vincenzopetrone3000@gmail.com"
         ],
-        subject: "Nuovo Lead - " + leadData.firstName + " " + leadData.lastName,
+        subject: "Nuovo Lead - " + sanitizeHtml(leadData.firstName) + " " + sanitizeHtml(leadData.lastName),
         html: emailHtml,
       });
 

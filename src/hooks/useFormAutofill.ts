@@ -103,14 +103,11 @@ export const useFormAutofill = ({
       }
     };
 
-    // Run autofill detection at intervals
+    // Optimized autofill detection - reduced number of checks
     const timers = [
-      setTimeout(() => { autoFillForm(); checkPhoneAutofill(); }, 100),
-      setTimeout(() => { autoFillForm(); checkPhoneAutofill(); }, 300),
-      setTimeout(() => { autoFillForm(); checkPhoneAutofill(); }, 500),
-      setTimeout(() => { autoFillForm(); checkPhoneAutofill(); }, 1000),
+      setTimeout(() => { autoFillForm(); checkPhoneAutofill(); }, 200),
+      setTimeout(() => { autoFillForm(); checkPhoneAutofill(); }, 800),
       setTimeout(() => checkPhoneAutofill(), 1500),
-      setTimeout(() => checkPhoneAutofill(), 2000),
     ];
     
     // Reset detection refs when step changes
@@ -119,11 +116,11 @@ export const useFormAutofill = ({
       phoneAutofillDetectedRef.current = false;
     }
     
-    // Periodic check for phone autofill when on step 7
+    // Optimized periodic check for phone autofill when on step 7
     let autofillCheckInterval: NodeJS.Timeout | null = null;
     if (currentStep === 7 && (!formData.phoneNumber || formData.phoneNumber.trim().length === 0)) {
       let checkCount = 0;
-      const maxChecks = 30;
+      const maxChecks = 15; // Reduced from 30
       autofillCheckInterval = setInterval(() => {
         checkPhoneAutofill();
         checkCount++;
@@ -132,7 +129,7 @@ export const useFormAutofill = ({
             clearInterval(autofillCheckInterval);
           }
         }
-      }, 100);
+      }, 200); // Increased interval from 100ms to 200ms
     }
     
     // Event listeners

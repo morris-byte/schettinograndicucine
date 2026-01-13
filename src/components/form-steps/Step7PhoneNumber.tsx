@@ -30,17 +30,16 @@ export const Step7PhoneNumber = ({
     const inputValue = e.target.value || '';
     const digits = inputValue.replace(/\D/g, '').slice(0, 10);
     
-    const currentDigits = formData.phoneNumber ? formData.phoneNumber.replace('+39', '') : '';
-    if (digits !== currentDigits) {
-      if (digits.length > 0) {
-        const formatted = '+39' + digits;
-        onInputChange('phoneNumber', formatted.replace('+39', ''));
-      } else {
-        onInputChange('phoneNumber', '');
-      }
+    // Format correctly using the utility function
+    const formatted = formatPhoneNumber(digits);
+    
+    // Only update if different from current value
+    if (formatted !== formData.phoneNumber) {
+      onInputChange('phoneNumber', digits); // Pass digits only, formatPhoneNumber will handle +39
     }
     
-    const phone = formData.phoneNumber.trim();
+    // Validate and show error if invalid
+    const phone = formatted.trim();
     if (phone && phone.startsWith('+39')) {
       const phoneDigits = phone.replace(/\D/g, '').slice(2);
       if (phoneDigits.length > 0 && phoneDigits.length !== 10) {

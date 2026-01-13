@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger';
+
 // Google Analytics 4 Configuration
 export const GA4_MEASUREMENT_ID = 'G-CWVFE2B6PJ';
 
@@ -6,7 +8,7 @@ export const GOOGLE_ADS_ID = 'AW-17544893918';
 
 // Google Tag Manager Container ID (da configurare)
 // Esempio: 'GTM-XXXXXXX'
-export const GTM_CONTAINER_ID = process.env.VITE_GTM_CONTAINER_ID || '';
+export const GTM_CONTAINER_ID = import.meta.env.VITE_GTM_CONTAINER_ID || '';
 
 // Declare gtag function for TypeScript
 // gtag has a flexible signature: gtag(command, targetId?, config?)
@@ -25,52 +27,52 @@ const pushToDataLayer = (eventName: string, eventData?: Record<string, unknown>)
       event: eventName,
       ...eventData
     });
-    console.log(`✅ GTM: ${eventName} event pushed to dataLayer`, eventData);
+    logger.log(`✅ GTM: ${eventName} event pushed to dataLayer`, eventData);
   }
 };
 
 // Initialize GA4
 export const initGA4 = () => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log('✅ GA4 initialized with ID:', GA4_MEASUREMENT_ID);
-    console.log('🔍 window.gtag function:', typeof window.gtag);
-    console.log('🔍 window.dataLayer:', window.dataLayer);
+    logger.log('✅ GA4 initialized with ID:', GA4_MEASUREMENT_ID);
+    logger.log('🔍 window.gtag function:', typeof window.gtag);
+    logger.log('🔍 window.dataLayer:', window.dataLayer);
     
     // Test event to verify GA4 is working
     window.gtag('event', 'test_event', {
       test_parameter: 'GA4 is working!'
     });
-    console.log('🧪 Test event sent to GA4');
+    logger.log('🧪 Test event sent to GA4');
     
     return true;
   }
-  console.warn('⚠️ GA4 not available');
-  console.warn('🔍 window object:', typeof window);
-  console.warn('🔍 window.gtag:', typeof window?.gtag);
+  logger.warn('⚠️ GA4 not available');
+  logger.warn('🔍 window object:', typeof window);
+  logger.warn('🔍 window.gtag:', typeof window?.gtag);
   return false;
 };
 
 // Initialize and verify Facebook Pixel
 export const initFacebookPixel = () => {
   if (typeof window !== 'undefined' && window.fbq) {
-    console.log('✅ Facebook Pixel initialized');
-    console.log('🔍 window.fbq function:', typeof window.fbq);
+    logger.log('✅ Facebook Pixel initialized');
+    logger.log('🔍 window.fbq function:', typeof window.fbq);
     
     // Verify pixel is loaded by checking if fbq is a function
     if (typeof window.fbq === 'function') {
-      console.log('✅ Facebook Pixel is ready');
+      logger.log('✅ Facebook Pixel is ready');
       return true;
     }
   }
-  console.warn('⚠️ Facebook Pixel not available');
-  console.warn('🔍 window.fbq:', typeof window?.fbq);
+  logger.warn('⚠️ Facebook Pixel not available');
+  logger.warn('🔍 window.fbq:', typeof window?.fbq);
   return false;
 };
 
 // Track Google Ads Conversion
 export const trackGoogleAdsConversion = (conversionLabel?: string, value?: number) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log('🎯 Tracking Google Ads conversion:', conversionLabel);
+    logger.log('🎯 Tracking Google Ads conversion:', conversionLabel);
     
     const conversionConfig: Record<string, string | number> = {
       send_to: GOOGLE_ADS_ID
@@ -87,9 +89,9 @@ export const trackGoogleAdsConversion = (conversionLabel?: string, value?: numbe
     
     window.gtag('event', 'conversion', conversionConfig);
     
-    console.log('✅ Google Ads conversion tracked successfully');
+    logger.log('✅ Google Ads conversion tracked successfully');
   } else {
-    console.warn('⚠️ gtag not available for Google Ads conversion tracking');
+    logger.warn('⚠️ gtag not available for Google Ads conversion tracking');
   }
 };
 
@@ -104,7 +106,7 @@ interface FormSubmissionData {
 
 export const trackFormSubmission = (formData: FormSubmissionData) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log('📊 Tracking form submission:', formData);
+    logger.log('📊 Tracking form submission:', formData);
     
     // Track lead generation with correct GA4 syntax
     window.gtag('event', 'generate_lead', {
@@ -127,9 +129,9 @@ export const trackFormSubmission = (formData: FormSubmissionData) => {
     // Track Google Ads conversion for form submission
     trackGoogleAdsConversion(undefined, 1);
 
-    console.log('✅ Form submission tracked successfully');
+    logger.log('✅ Form submission tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for form tracking');
+    logger.warn('⚠️ GA4 not available for form tracking');
   }
   
   // Track Facebook Pixel events
@@ -150,9 +152,9 @@ export const trackFormSubmission = (formData: FormSubmissionData) => {
         equipment_type: formData.equipmentType || 'N/A'
       });
       
-      console.log('✅ Facebook Pixel: Lead and Confirmed events tracked');
+      logger.log('✅ Facebook Pixel: Lead and Confirmed events tracked');
     } catch (error) {
-      console.warn('⚠️ Facebook Pixel not available for form submission tracking:', error);
+      logger.warn('⚠️ Facebook Pixel not available for form submission tracking:', error);
     }
   }
   
@@ -174,7 +176,7 @@ export const trackFormSubmission = (formData: FormSubmissionData) => {
 // Track form step progression
 export const trackFormStep = (step: number, stepName: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`📊 Tracking form step ${step}: ${stepName}`);
+    logger.log(`📊 Tracking form step ${step}: ${stepName}`);
     
     window.gtag('event', 'form_step', {
       step_number: step,
@@ -182,16 +184,16 @@ export const trackFormStep = (step: number, stepName: string) => {
       event_category: 'Form'
     });
 
-    console.log('✅ Form step tracked successfully');
+    logger.log('✅ Form step tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for step tracking');
+    logger.warn('⚠️ GA4 not available for step tracking');
   }
 };
 
 // Track button clicks
 export const trackButtonClick = (buttonName: string, location: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`📊 Tracking button click: ${buttonName} in ${location}`);
+    logger.log(`📊 Tracking button click: ${buttonName} in ${location}`);
     
     window.gtag('event', 'button_click', {
       button_name: buttonName,
@@ -199,9 +201,9 @@ export const trackButtonClick = (buttonName: string, location: string) => {
       event_category: 'Button'
     });
 
-    console.log('✅ Button click tracked successfully');
+    logger.log('✅ Button click tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for button tracking');
+    logger.warn('⚠️ GA4 not available for button tracking');
   }
   
   // Track Facebook Pixel event
@@ -211,9 +213,9 @@ export const trackButtonClick = (buttonName: string, location: string) => {
         button_name: buttonName,
         button_location: location
       });
-      console.log('✅ Facebook Pixel: ClickButton event tracked');
+      logger.log('✅ Facebook Pixel: ClickButton event tracked');
     } catch (error) {
-      console.warn('⚠️ Facebook Pixel not available for button tracking:', error);
+      logger.warn('⚠️ Facebook Pixel not available for button tracking:', error);
     }
   }
   
@@ -227,7 +229,7 @@ export const trackButtonClick = (buttonName: string, location: string) => {
 // Track page views
 export const trackPageView = (pageName: string, additionalParams?: Record<string, unknown>) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`📊 Tracking page view: ${pageName}`);
+    logger.log(`📊 Tracking page view: ${pageName}`);
     
     window.gtag('event', 'page_view', {
       page_title: pageName,
@@ -236,16 +238,16 @@ export const trackPageView = (pageName: string, additionalParams?: Record<string
       ...additionalParams
     });
 
-    console.log('✅ Page view tracked successfully');
+    logger.log('✅ Page view tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for page view tracking');
+    logger.warn('⚠️ GA4 not available for page view tracking');
   }
 };
 
 // Track form errors
 export const trackFormError = (errorType: string, errorMessage: string, step?: number) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`❌ Tracking form error: ${errorType} - ${errorMessage}`);
+    logger.log(`❌ Tracking form error: ${errorType} - ${errorMessage}`);
     
     window.gtag('event', 'form_error', {
       error_type: errorType,
@@ -255,16 +257,16 @@ export const trackFormError = (errorType: string, errorMessage: string, step?: n
       non_interaction: true
     });
 
-    console.log('✅ Form error tracked successfully');
+    logger.log('✅ Form error tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for error tracking');
+    logger.warn('⚠️ GA4 not available for error tracking');
   }
 };
 
 // Track form abandonment
 export const trackFormAbandon = (step: number, stepName: string, timeSpent: number) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`🚪 Tracking form abandon at step ${step}: ${stepName} after ${timeSpent}s`);
+    logger.log(`🚪 Tracking form abandon at step ${step}: ${stepName} after ${timeSpent}s`);
     
     window.gtag('event', 'form_abandon', {
       step_number: step,
@@ -274,16 +276,16 @@ export const trackFormAbandon = (step: number, stepName: string, timeSpent: numb
       non_interaction: true
     });
 
-    console.log('✅ Form abandon tracked successfully');
+    logger.log('✅ Form abandon tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for abandon tracking');
+    logger.warn('⚠️ GA4 not available for abandon tracking');
   }
 };
 
 // Track form completion time
 export const trackFormCompletionTime = (totalTimeSeconds: number, formData?: FormSubmissionData) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`⏱️ Tracking form completion time: ${totalTimeSeconds}s`);
+    logger.log(`⏱️ Tracking form completion time: ${totalTimeSeconds}s`);
     
     window.gtag('event', 'form_completion_time', {
       completion_time_seconds: Math.round(totalTimeSeconds),
@@ -292,16 +294,16 @@ export const trackFormCompletionTime = (totalTimeSeconds: number, formData?: For
       value: Math.round(totalTimeSeconds)
     });
 
-    console.log('✅ Form completion time tracked successfully');
+    logger.log('✅ Form completion time tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for completion time tracking');
+    logger.warn('⚠️ GA4 not available for completion time tracking');
   }
 };
 
 // Track back button clicks
 export const trackBackButton = (fromStep: number, toStep: number, stepName: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`⬅️ Tracking back button: from step ${fromStep} to step ${toStep}`);
+    logger.log(`⬅️ Tracking back button: from step ${fromStep} to step ${toStep}`);
     
     window.gtag('event', 'form_back', {
       from_step: fromStep,
@@ -311,9 +313,9 @@ export const trackBackButton = (fromStep: number, toStep: number, stepName: stri
       event_label: 'Back Button Click'
     });
 
-    console.log('✅ Back button tracked successfully');
+    logger.log('✅ Back button tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for back button tracking');
+    logger.warn('⚠️ GA4 not available for back button tracking');
   }
   
   // Track Facebook Pixel event
@@ -324,9 +326,9 @@ export const trackBackButton = (fromStep: number, toStep: number, stepName: stri
         to_step: toStep,
         step_name: stepName
       });
-      console.log('✅ Facebook Pixel: GoBack event tracked');
+      logger.log('✅ Facebook Pixel: GoBack event tracked');
     } catch (error) {
-      console.warn('⚠️ Facebook Pixel not available for back button tracking:', error);
+      logger.warn('⚠️ Facebook Pixel not available for back button tracking:', error);
     }
   }
   
@@ -341,7 +343,7 @@ export const trackBackButton = (fromStep: number, toStep: number, stepName: stri
 // Track outbound link clicks
 export const trackOutboundLink = (url: string, linkText: string, location?: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`🔗 Tracking outbound link: ${url}`);
+    logger.log(`🔗 Tracking outbound link: ${url}`);
     
     window.gtag('event', 'click_outbound_link', {
       link_url: url,
@@ -351,16 +353,16 @@ export const trackOutboundLink = (url: string, linkText: string, location?: stri
       event_label: 'External Link Click'
     });
 
-    console.log('✅ Outbound link tracked successfully');
+    logger.log('✅ Outbound link tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for outbound link tracking');
+    logger.warn('⚠️ GA4 not available for outbound link tracking');
   }
 };
 
 // Track scroll depth
 export const trackScrollDepth = (depth: number, page?: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`📜 Tracking scroll depth: ${depth}%`);
+    logger.log(`📜 Tracking scroll depth: ${depth}%`);
     
     window.gtag('event', 'scroll_depth', {
       scroll_depth_percent: depth,
@@ -368,16 +370,16 @@ export const trackScrollDepth = (depth: number, page?: string) => {
       event_category: 'Engagement'
     });
 
-    console.log('✅ Scroll depth tracked successfully');
+    logger.log('✅ Scroll depth tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for scroll tracking');
+    logger.warn('⚠️ GA4 not available for scroll tracking');
   }
 };
 
 // Track time on page
 export const trackTimeOnPage = (timeSeconds: number, page?: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`⏰ Tracking time on page: ${timeSeconds}s`);
+    logger.log(`⏰ Tracking time on page: ${timeSeconds}s`);
     
     window.gtag('event', 'time_on_page', {
       time_seconds: Math.round(timeSeconds),
@@ -386,9 +388,9 @@ export const trackTimeOnPage = (timeSeconds: number, page?: string) => {
       event_category: 'Engagement'
     });
 
-    console.log('✅ Time on page tracked successfully');
+    logger.log('✅ Time on page tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for time tracking');
+    logger.warn('⚠️ GA4 not available for time tracking');
   }
 };
 
@@ -409,7 +411,7 @@ export const trackUTMParameters = () => {
     });
 
     if (Object.keys(utmParams).length > 0) {
-      console.log('📊 Tracking UTM parameters:', utmParams);
+      logger.log('📊 Tracking UTM parameters:', utmParams);
       
       window.gtag('event', 'utm_tracking', {
         ...utmParams,
@@ -418,17 +420,17 @@ export const trackUTMParameters = () => {
         event_category: 'Marketing'
       });
 
-      console.log('✅ UTM parameters tracked successfully');
+      logger.log('✅ UTM parameters tracked successfully');
     }
   } else {
-    console.warn('⚠️ GA4 not available for UTM tracking');
+    logger.warn('⚠️ GA4 not available for UTM tracking');
   }
 };
 
 // Track field interactions
 export const trackFieldInteraction = (fieldName: string, action: 'focus' | 'blur' | 'error', step?: number) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`📝 Tracking field ${action}: ${fieldName}`);
+    logger.log(`📝 Tracking field ${action}: ${fieldName}`);
     
     window.gtag('event', 'field_interaction', {
       field_name: fieldName,
@@ -437,16 +439,16 @@ export const trackFieldInteraction = (fieldName: string, action: 'focus' | 'blur
       event_category: 'Form'
     });
 
-    console.log('✅ Field interaction tracked successfully');
+    logger.log('✅ Field interaction tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for field tracking');
+    logger.warn('⚠️ GA4 not available for field tracking');
   }
 };
 
 // Track network errors
 export const trackNetworkError = (errorType: string, endpoint: string, statusCode?: number, errorMessage?: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`🌐 Tracking network error: ${errorType} on ${endpoint}`);
+    logger.log(`🌐 Tracking network error: ${errorType} on ${endpoint}`);
     
     window.gtag('event', 'network_error', {
       error_type: errorType,
@@ -457,9 +459,9 @@ export const trackNetworkError = (errorType: string, endpoint: string, statusCod
       non_interaction: true
     });
 
-    console.log('✅ Network error tracked successfully');
+    logger.log('✅ Network error tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for network error tracking');
+    logger.warn('⚠️ GA4 not available for network error tracking');
   }
 };
 
@@ -470,7 +472,7 @@ export const trackDeviceInfo = () => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
     const isTablet = /iPad|Android(?=.*\bMobile\b)/i.test(userAgent);
     
-    console.log('📱 Tracking device info');
+    logger.log('📱 Tracking device info');
     
     window.gtag('event', 'device_info', {
       device_type: isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop',
@@ -481,16 +483,16 @@ export const trackDeviceInfo = () => {
       event_category: 'Technical'
     });
 
-    console.log('✅ Device info tracked successfully');
+    logger.log('✅ Device info tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for device tracking');
+    logger.warn('⚠️ GA4 not available for device tracking');
   }
 };
 
 // Track autofill detection
 export const trackAutofillUsage = (fieldsDetected: string[]) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log('🤖 Tracking autofill usage:', fieldsDetected);
+    logger.log('🤖 Tracking autofill usage:', fieldsDetected);
     
     window.gtag('event', 'autofill_detected', {
       autofill_fields: fieldsDetected.join(','),
@@ -498,16 +500,16 @@ export const trackAutofillUsage = (fieldsDetected: string[]) => {
       event_category: 'UX'
     });
 
-    console.log('✅ Autofill usage tracked successfully');
+    logger.log('✅ Autofill usage tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for autofill tracking');
+    logger.warn('⚠️ GA4 not available for autofill tracking');
   }
 };
 
 // Track Core Web Vitals (simplified)
 export const trackCoreWebVitals = (metric: string, value: number, id: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    console.log(`⚡ Tracking Core Web Vital: ${metric} = ${value}`);
+    logger.log(`⚡ Tracking Core Web Vital: ${metric} = ${value}`);
     
     window.gtag('event', 'core_web_vital', {
       metric_name: metric,
@@ -516,9 +518,9 @@ export const trackCoreWebVitals = (metric: string, value: number, id: string) =>
       event_category: 'Performance'
     });
 
-    console.log('✅ Core Web Vital tracked successfully');
+    logger.log('✅ Core Web Vital tracked successfully');
   } else {
-    console.warn('⚠️ GA4 not available for Core Web Vitals tracking');
+    logger.warn('⚠️ GA4 not available for Core Web Vitals tracking');
   }
 };
 
@@ -576,9 +578,9 @@ export const trackFieldCompletion = (fieldName: string, fieldValue: string | boo
         step_number: step || 'unknown'
       });
       
-      console.log(`✅ Facebook Pixel: ${eventName} event tracked (${fieldName} = ${valueToTrack})`);
+      logger.log(`✅ Facebook Pixel: ${eventName} event tracked (${fieldName} = ${valueToTrack})`);
     } catch (error) {
-      console.warn('⚠️ Facebook Pixel not available for field completion tracking:', error);
+      logger.warn('⚠️ Facebook Pixel not available for field completion tracking:', error);
     }
   }
   
