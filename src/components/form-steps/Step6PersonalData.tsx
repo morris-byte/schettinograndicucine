@@ -23,62 +23,101 @@ export const Step6PersonalData = ({
   const firstNameInputRef = useRef<HTMLInputElement>(null);
   const lastNameInputRef = useRef<HTMLInputElement>(null);
   
-  // Controllo continuo per intercettare autofill del browser
+  // Controllo continuo AGRESSIVO per intercettare autofill del browser
+  // Questo monitora continuamente il DOM e pulisce immediatamente se trova email
   useEffect(() => {
+    const isEmail = (value: string): boolean => {
+      if (!value || typeof value !== 'string') return false;
+      const trimmed = value.trim();
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) || trimmed.includes('@');
+    };
+    
     const checkAndCleanInputs = () => {
-      const isEmail = (value: string): boolean => {
-        if (!value) return false;
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) || value.includes('@');
-      };
-      
-      // Controlla firstName
+      // Controlla firstName - controllo AGRESSIVO
       if (firstNameInputRef.current) {
         const domValue = firstNameInputRef.current.value || '';
         if (isEmail(domValue)) {
-          // Pulisci il DOM
+          // Email trovata! Pulisci IMMEDIATAMENTE
+          console.warn('🚫 Email rilevata in firstName DOM, pulizia immediata');
           firstNameInputRef.current.value = '';
-          // Pulisci lo stato
           onInputChange('firstName', '');
-        } else if (domValue !== formData.firstName && domValue.trim() !== '') {
-          // Se il valore DOM è diverso dallo stato e non è email, aggiorna lo stato
-          if (!isEmail(domValue)) {
+          // Forza il focus per mostrare all'utente che il campo è stato pulito
+          firstNameInputRef.current.focus();
+        } else if (domValue.trim() !== '' && !isEmail(domValue)) {
+          // Se il valore DOM è valido (non email) e diverso dallo stato, aggiorna lo stato
+          if (domValue !== formData.firstName) {
             onInputChange('firstName', domValue);
           }
         }
       }
       
-      // Controlla lastName
+      // Controlla lastName - controllo AGRESSIVO
       if (lastNameInputRef.current) {
         const domValue = lastNameInputRef.current.value || '';
         if (isEmail(domValue)) {
-          // Pulisci il DOM
+          // Email trovata! Pulisci IMMEDIATAMENTE
+          console.warn('🚫 Email rilevata in lastName DOM, pulizia immediata');
           lastNameInputRef.current.value = '';
-          // Pulisci lo stato
           onInputChange('lastName', '');
-        } else if (domValue !== formData.lastName && domValue.trim() !== '') {
-          // Se il valore DOM è diverso dallo stato e non è email, aggiorna lo stato
-          if (!isEmail(domValue)) {
+          // Forza il focus per mostrare all'utente che il campo è stato pulito
+          lastNameInputRef.current.focus();
+        } else if (domValue.trim() !== '' && !isEmail(domValue)) {
+          // Se il valore DOM è valido (non email) e diverso dallo stato, aggiorna lo stato
+          if (domValue !== formData.lastName) {
             onInputChange('lastName', domValue);
           }
         }
       }
     };
     
-    // Controlla ogni 100ms per intercettare autofill
-    const interval = setInterval(checkAndCleanInputs, 100);
+    // Controlla ogni 50ms (più frequente) per intercettare autofill aggressivo
+    const interval = setInterval(checkAndCleanInputs, 50);
     
-    // Controlla anche su eventi
-    const handleInput = () => {
-      setTimeout(checkAndCleanInputs, 50);
+    // Controlla anche su TUTTI gli eventi possibili
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target && (target.id === 'firstName' || target.id === 'lastName')) {
+        setTimeout(checkAndCleanInputs, 10); // Controllo immediato
+      }
     };
     
+    const handleChange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target && (target.id === 'firstName' || target.id === 'lastName')) {
+        checkAndCleanInputs(); // Controllo sincrono
+      }
+    };
+    
+    const handleFocus = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target && (target.id === 'firstName' || target.id === 'lastName')) {
+        setTimeout(checkAndCleanInputs, 10);
+      }
+    };
+    
+    const handleBlur = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target && (target.id === 'firstName' || target.id === 'lastName')) {
+        checkAndCleanInputs(); // Controllo finale quando perde il focus
+      }
+    };
+    
+    // Aggiungi listener per TUTTI gli eventi possibili
     document.addEventListener('input', handleInput, true);
-    document.addEventListener('change', handleInput, true);
+    document.addEventListener('change', handleChange, true);
+    document.addEventListener('focus', handleFocus, true);
+    document.addEventListener('blur', handleBlur, true);
+    document.addEventListener('keyup', handleInput, true);
+    document.addEventListener('paste', handleInput, true);
     
     return () => {
       clearInterval(interval);
       document.removeEventListener('input', handleInput, true);
-      document.removeEventListener('change', handleInput, true);
+      document.removeEventListener('change', handleChange, true);
+      document.removeEventListener('focus', handleFocus, true);
+      document.removeEventListener('blur', handleBlur, true);
+      document.removeEventListener('keyup', handleInput, true);
+      document.removeEventListener('paste', handleInput, true);
     };
   }, [formData.firstName, formData.lastName, onInputChange]);
   

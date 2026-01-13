@@ -64,6 +64,7 @@ export const useFormAutofill = ({
   }, [currentStep, formData.phoneNumber, phoneInputRef, setFormData]);
 
     // Auto-fill form fields using browser autofill
+    // IMPORTANTE: firstName e lastName NON vengono più autocompletati - solo puliti se contengono email
   useEffect(() => {
     const autoFillForm = () => {
       // Solo controlla quando siamo sullo step 6 (dati personali)
@@ -86,36 +87,26 @@ export const useFormAutofill = ({
           // Controlla sia formato email completo che presenza di @
           const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue) || inputValue.includes('@');
           
-          // Identifica i campi SOLO tramite id (non name, che abbiamo cambiato per confondere autofill)
-          // Se è un campo firstName/lastName ma contiene email, PULISCI il campo DOM
-          if ((id === 'firstName' || id === 'lastName') && isEmail) {
-            // Pulisci il campo DOM immediatamente
-            htmlInput.value = '';
-            // Pulisci anche lo stato
-            if (id === 'firstName') {
-              setFormData(prev => ({ ...prev, firstName: '' }));
-            } else if (id === 'lastName') {
-              setFormData(prev => ({ ...prev, lastName: '' }));
+          // *** DISABILITATO AUTOFILL PER firstName/lastName ***
+          // Se è un campo firstName/lastName, SOLO pulisci se contiene email
+          // NON autocompletare mai questi campi - devono essere inseriti solo manualmente dall'utente
+          if (id === 'firstName' || id === 'lastName') {
+            if (isEmail) {
+              // Pulisci il campo DOM immediatamente se contiene email
+              htmlInput.value = '';
+              // Pulisci anche lo stato
+              if (id === 'firstName') {
+                setFormData(prev => ({ ...prev, firstName: '' }));
+              } else if (id === 'lastName') {
+                setFormData(prev => ({ ...prev, lastName: '' }));
+              }
             }
-            return; // Non inserire email nei campi nome/cognome
+            // NON autocompletare firstName/lastName - esci subito
+            return;
           }
           
-          // Controlla se è il campo firstName - usa SOLO id (non name)
-          if (id === 'firstName' && !isEmail) {
-            // Verifica che non sia già stato inserito manualmente dall'utente
-            if (!formData.firstName || formData.firstName.trim() === '') {
-              setFormData(prev => ({ ...prev, firstName: inputValue }));
-              autofillFields.push('firstName');
-            }
-          } 
-          // Controlla se è il campo lastName - usa SOLO id (non name)
-          else if (id === 'lastName' && !isEmail) {
-            // Verifica che non sia già stato inserito manualmente dall'utente
-            if (!formData.lastName || formData.lastName.trim() === '') {
-              setFormData(prev => ({ ...prev, lastName: inputValue }));
-              autofillFields.push('lastName');
-            }
-          } else if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
+          // Autofill per altri campi (phone, zona, email) - MAI per firstName/lastName
+          if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
             const phoneValue = htmlInput.value.trim();
             if (phoneValue) {
               const formatted = formatPhoneNumber(phoneValue);

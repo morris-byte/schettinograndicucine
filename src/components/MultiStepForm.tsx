@@ -402,18 +402,75 @@ const MultiStepForm = () => {
         return;
       }
       
+      // CONTROLLO FINALE ASSOLUTO: se firstName o lastName contengono ancora email, BLOCCA
+      // Questo è l'ultimo controllo prima di inviare - se passa questo, il payload è sicuro
+      const finalCheckFirstName = finalFirstName.trim();
+      const finalCheckLastName = finalLastName.trim();
+      const isEmailInFirstName = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalCheckFirstName) || finalCheckFirstName.includes('@');
+      const isEmailInLastName = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalCheckLastName) || finalCheckLastName.includes('@');
+      
+      if (isEmailInFirstName || isEmailInLastName) {
+        logger.error('❌❌❌ CONTROLLO FINALE FALLITO: Email trovata nel payload! firstName:', finalCheckFirstName, 'lastName:', finalCheckLastName);
+        toast({
+          title: "Errore Critico",
+          description: "I campi Nome e Cognome non possono contenere email. Per favore, ricarica la pagina e riprova.",
+          duration: 8000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Se firstName o lastName sono vuoti dopo tutti i controlli, blocca
+      if (!finalCheckFirstName || finalCheckFirstName === '') {
+        logger.error('❌ firstName vuoto dopo controlli');
+        toast({
+          description: "Inserisci il tuo nome",
+          duration: 3000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!finalCheckLastName || finalCheckLastName === '') {
+        logger.error('❌ lastName vuoto dopo controlli');
+        toast({
+          description: "Inserisci il tuo cognome",
+          duration: 3000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Crea il payload con i valori FINALI e SICURI
       const payload: FormSubmissionPayload = {
         ...cleanFormData,
-        firstName: finalFirstName.trim(),
-        lastName: finalLastName.trim(),
+        firstName: finalCheckFirstName, // Usa i valori già controllati
+        lastName: finalCheckLastName,   // Usa i valori già controllati
         timestamp: new Date().toISOString(),
         source: 'Schettino Form',
         catalog_request: cleanFormData.wantsCatalog ? 'Sì' : 'No',
         phone_formatted: cleanFormData.phoneNumber || '',
-        full_name: `${finalFirstName.trim()} ${finalLastName.trim()}`.trim(),
+        full_name: `${finalCheckFirstName} ${finalCheckLastName}`.trim(),
         privacy_consent: cleanFormData.privacyConsent ? 'Sì' : 'No',
       };
 
+      // Log finale per debug - verifica che firstName NON sia email
+      logger.log('✅ Payload finale creato. firstName:', payload.firstName, 'lastName:', payload.lastName);
+      if (payload.firstName.includes('@') || payload.lastName.includes('@')) {
+        logger.error('❌❌❌ ERRORE CRITICO: Payload contiene email in firstName/lastName! BLOCCATO.');
+        toast({
+          title: "Errore Critico",
+          description: "Errore interno. Per favore, ricarica la pagina e riprova.",
+          duration: 8000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       logger.log('Invio dati a Make:', payload);
       logger.log('URL webhook:', makeWebhookUrl);
 
