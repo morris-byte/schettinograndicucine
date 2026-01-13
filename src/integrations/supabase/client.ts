@@ -4,19 +4,23 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Validate environment variables
-if (!SUPABASE_URL) {
-  throw new Error('VITE_SUPABASE_URL environment variable is required');
+// Validate environment variables with fallback for production
+// TODO: Configurare queste variabili su Vercel
+const SUPABASE_URL_FINAL = SUPABASE_URL || 'https://laxbglhrrcbrxpnpvcob.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY_FINAL = SUPABASE_PUBLISHABLE_KEY || '';
+
+if (!SUPABASE_URL && import.meta.env.PROD) {
+  console.warn('⚠️ VITE_SUPABASE_URL non configurata, usando fallback. Configura su Vercel!');
 }
 
-if (!SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error('VITE_SUPABASE_PUBLISHABLE_KEY environment variable is required');
+if (!SUPABASE_PUBLISHABLE_KEY && import.meta.env.PROD) {
+  console.warn('⚠️ VITE_SUPABASE_PUBLISHABLE_KEY non configurata. Configura su Vercel!');
 }
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+export const supabase = createClient(SUPABASE_URL_FINAL, SUPABASE_PUBLISHABLE_KEY_FINAL, {
   auth: {
     storage: localStorage,
     persistSession: true,
