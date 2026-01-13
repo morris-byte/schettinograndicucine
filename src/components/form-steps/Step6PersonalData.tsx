@@ -1,6 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { FormData } from '@/types/form';
 import { FormStepButtons } from './FormStepButtons';
+import { useEffect, useRef } from 'react';
 
 interface Step6PersonalDataProps {
   formData: FormData;
@@ -19,6 +20,68 @@ export const Step6PersonalData = ({
   onNext,
   onBack,
 }: Step6PersonalDataProps) => {
+  const firstNameInputRef = useRef<HTMLInputElement>(null);
+  const lastNameInputRef = useRef<HTMLInputElement>(null);
+  
+  // Controllo continuo per intercettare autofill del browser
+  useEffect(() => {
+    const checkAndCleanInputs = () => {
+      const isEmail = (value: string): boolean => {
+        if (!value) return false;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) || value.includes('@');
+      };
+      
+      // Controlla firstName
+      if (firstNameInputRef.current) {
+        const domValue = firstNameInputRef.current.value || '';
+        if (isEmail(domValue)) {
+          // Pulisci il DOM
+          firstNameInputRef.current.value = '';
+          // Pulisci lo stato
+          onInputChange('firstName', '');
+        } else if (domValue !== formData.firstName && domValue.trim() !== '') {
+          // Se il valore DOM è diverso dallo stato e non è email, aggiorna lo stato
+          if (!isEmail(domValue)) {
+            onInputChange('firstName', domValue);
+          }
+        }
+      }
+      
+      // Controlla lastName
+      if (lastNameInputRef.current) {
+        const domValue = lastNameInputRef.current.value || '';
+        if (isEmail(domValue)) {
+          // Pulisci il DOM
+          lastNameInputRef.current.value = '';
+          // Pulisci lo stato
+          onInputChange('lastName', '');
+        } else if (domValue !== formData.lastName && domValue.trim() !== '') {
+          // Se il valore DOM è diverso dallo stato e non è email, aggiorna lo stato
+          if (!isEmail(domValue)) {
+            onInputChange('lastName', domValue);
+          }
+        }
+      }
+    };
+    
+    // Controlla ogni 100ms per intercettare autofill
+    const interval = setInterval(checkAndCleanInputs, 100);
+    
+    // Controlla anche su eventi
+    const handleInput = () => {
+      setTimeout(checkAndCleanInputs, 50);
+    };
+    
+    document.addEventListener('input', handleInput, true);
+    document.addEventListener('change', handleInput, true);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('input', handleInput, true);
+      document.removeEventListener('change', handleInput, true);
+    };
+  }, [formData.firstName, formData.lastName, onInputChange]);
+  
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -32,6 +95,7 @@ export const Step6PersonalData = ({
       <form onSubmit={(e) => { e.preventDefault(); onNext(); }} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Input
+            ref={firstNameInputRef}
             id="firstName"
             name="firstName"
             placeholder="Nome"
@@ -43,8 +107,9 @@ export const Step6PersonalData = ({
               if (!isEmail) {
                 onInputChange('firstName', value);
               } else {
-                // Se è un'email, non aggiornare il campo
-                e.target.value = formData.firstName;
+                // Se è un'email, pulisci immediatamente
+                e.target.value = '';
+                onInputChange('firstName', '');
               }
             }}
             onFocus={() => onFieldFocus('firstName')}
@@ -59,11 +124,14 @@ export const Step6PersonalData = ({
               onFieldBlur('firstName');
             }}
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
-            autoComplete="given-name"
+            autoComplete="off"
             type="text"
             data-form-type="name"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
           <Input
+            ref={lastNameInputRef}
             id="lastName"
             name="lastName"
             placeholder="Cognome"
@@ -75,8 +143,9 @@ export const Step6PersonalData = ({
               if (!isEmail) {
                 onInputChange('lastName', value);
               } else {
-                // Se è un'email, non aggiornare il campo
-                e.target.value = formData.lastName;
+                // Se è un'email, pulisci immediatamente
+                e.target.value = '';
+                onInputChange('lastName', '');
               }
             }}
             onFocus={() => onFieldFocus('lastName')}
@@ -91,9 +160,11 @@ export const Step6PersonalData = ({
               onFieldBlur('lastName');
             }}
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
-            autoComplete="family-name"
+            autoComplete="off"
             type="text"
             data-form-type="name"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
         </div>
         <FormStepButtons
