@@ -614,30 +614,53 @@ const MultiStepForm = () => {
 
         const totalTimeSeconds = (Date.now() - formStartTimeRef.current) / 1000;
 
-        // Send email notification
+        // Send email notification (non blocca il form se fallisce)
         try {
-          const emailResponse = await fetch(getSupabaseFunctionUrl(), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...payload,
-              // Assicurati che firstName e lastName siano puliti anche per l'email
-              firstName: cleanFormData.firstName.trim(),
-              lastName: cleanFormData.lastName.trim(),
-            }),
-          });
-
-          if (emailResponse.ok) {
-            logger.log('Email di notifica inviata con successo');
+          const supabaseFunctionUrl = getSupabaseFunctionUrl();
+          
+          // Verifica che l'URL sia valido prima di tentare la chiamata
+          if (!supabaseFunctionUrl || !supabaseFunctionUrl.startsWith('https://')) {
+            logger.warn('⚠️ URL Supabase function non valido, salto invio email');
+            logger.warn('  - URL:', supabaseFunctionUrl);
+            logger.warn('  - Configura VITE_SUPABASE_FUNCTION_URL su Vercel');
           } else {
-            logger.warn('Errore invio email notifica, ma form completato comunque');
-            trackFormError('email_error', 'Failed to send notification email', currentStep);
-            trackNetworkError('email_failure', 'supabase-email-endpoint', emailResponse.status, 'Email notification failed');
+            logger.log('📧 Tentativo invio email a:', supabaseFunctionUrl);
+            
+            const emailResponse = await fetch(supabaseFunctionUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ...payload,
+                // Assicurati che firstName e lastName siano puliti anche per l'email
+                firstName: finalCheckFirstName, // Usa i valori finali controllati
+                lastName: finalCheckLastName,    // Usa i valori finali controllati
+              }),
+            });
+
+            if (emailResponse.ok) {
+              logger.log('✅ Email di notifica inviata con successo');
+            } else {
+              logger.warn('⚠️ Errore invio email notifica (status:', emailResponse.status, '), ma form completato comunque');
+              trackFormError('email_error', `HTTP ${emailResponse.status}`, currentStep);
+              trackNetworkError('email_failure', supabaseFunctionUrl, emailResponse.status, 'Email notification failed');
+            }
           }
-        } catch (emailError) {
-          logger.warn('Errore invio email notifica:', emailError);
+        } catch (emailError: any) {
+          // Non bloccare il form se l'email fallisce - è solo una notifica
+          logger.warn('⚠️ Errore invio email notifica (non critico):', emailError);
+          logger.warn('  - Tipo errore:', emailError?.name || 'Unknown');
+          logger.warn('  - Messaggio:', emailError?.message || String(emailError));
+          
+          // Se è un errore di risoluzione DNS, suggerisci di verificare la configurazione
+          if (emailError?.message?.includes('ERR_NAME_NOT_RESOLVED') || 
+              emailError?.message?.includes('Failed to fetch') ||
+              emailError?.name === 'TypeError') {
+            logger.warn('  - 💡 SUGGERIMENTO: Verifica che VITE_SUPABASE_FUNCTION_URL sia configurato correttamente su Vercel');
+            logger.warn('  - 💡 L\'URL Supabase potrebbe essere errato o il dominio non esiste');
+          }
+          
           trackFormError('email_error', String(emailError), currentStep);
-          trackNetworkError('email_exception', 'supabase-email-endpoint', undefined, String(emailError));
+          trackNetworkError('email_exception', getSupabaseFunctionUrl(), undefined, String(emailError));
         }
 
         confetti({
