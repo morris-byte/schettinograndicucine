@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import MultiStepForm from '@/components/MultiStepForm';
-import DebugPanel from '@/components/DebugPanel';
 import { trackPageView, trackUTMParameters } from '@/config/analytics';
 
 const Index = () => {
@@ -14,12 +13,7 @@ const Index = () => {
     trackUTMParameters();
   }, []);
 
-  return (
-    <>
-      <MultiStepForm />
-      <DebugPanel />
-    </>
-  );
+  return <MultiStepForm />;
 };
 
 export default Index;
