@@ -19,18 +19,19 @@ export const isStepCompleted = (step: number, formData: FormData): boolean => {
     case 2:
       return formData.isInCampania !== null;
     case 3:
-      return formData.restaurantZone.trim() !== '';
+      return (formData.restaurantZone || '').trim() !== '';
     case 4:
-      return formData.restaurantName.trim() !== '';
+      return (formData.restaurantName || '').trim() !== '';
     case 5:
-      return formData.equipmentType.trim() !== '';
+      return (formData.equipmentType || '').trim() !== '';
     case 6:
-      return formData.firstName.trim() !== '' && formData.lastName.trim() !== '';
+      return (formData.firstName || '').trim() !== '' && (formData.lastName || '').trim() !== '';
     case 7: {
-      return validatePhoneNumber(formData.phoneNumber);
+      return validatePhoneNumber(formData.phoneNumber || '');
     }
     case 8:
-      return formData.email.trim() !== '' && validateEmail(formData.email);
+      const email = (formData.email || '').trim();
+      return email !== '' && validateEmail(email);
     case 9:
       return formData.wantsCatalog !== null;
     case 10:

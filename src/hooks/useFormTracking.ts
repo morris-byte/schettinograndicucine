@@ -53,11 +53,11 @@ export const useFormTracking = ({
       });
     };
     
-    // Time on page tracking
+    // Time on page tracking - ogni 60 secondi invece di 30 per ridurre overhead
     const timeInterval = setInterval(() => {
       const timeOnPage = (Date.now() - pageStartTimeRef.current) / 1000;
       trackTimeOnPage(timeOnPage, 'Home');
-    }, 30000);
+    }, 60000); // Ridotto da 30s a 60s
     
     window.addEventListener('scroll', handleScroll, { passive: true });
     

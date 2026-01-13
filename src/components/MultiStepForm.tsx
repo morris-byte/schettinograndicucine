@@ -144,13 +144,15 @@ const MultiStepForm = () => {
           trackFieldCompletion(field, processedValue, currentStep);
         } else if (field === 'firstName') {
           trackFieldCompletion(field, processedValue, currentStep);
-          if (formData.lastName && formData.lastName.trim() !== '') {
-            trackFieldCompletion('datiPersonali', `${processedValue} ${formData.lastName}`, currentStep);
+          const lastName = (formData.lastName || '').trim();
+          if (lastName !== '') {
+            trackFieldCompletion('datiPersonali', `${processedValue} ${lastName}`, currentStep);
           }
         } else if (field === 'lastName') {
           trackFieldCompletion(field, processedValue, currentStep);
-          if (formData.firstName && formData.firstName.trim() !== '') {
-            trackFieldCompletion('datiPersonali', `${formData.firstName} ${processedValue}`, currentStep);
+          const firstName = (formData.firstName || '').trim();
+          if (firstName !== '') {
+            trackFieldCompletion('datiPersonali', `${firstName} ${processedValue}`, currentStep);
           }
         } else if (field === 'phoneNumber') {
           const digits = processedValue.replace(/\D/g, '').slice(2);
@@ -168,17 +170,9 @@ const MultiStepForm = () => {
       }
     }
 
-    // Validate email format on change
-    if (field === 'email' && value.includes('@')) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value)) {
-        trackFormError('inline_validation', 'Invalid email format while typing', currentStep);
-        toast({
-          description: "Formato email non valido. Usa nome@esempio.it",
-          duration: 2000,
-        });
-      }
-    }
+    // Validate email format on change - solo se l'utente ha finito di digitare (non ad ogni carattere)
+    // La validazione completa è gestita in Step8Email con errore visivo
+    // Qui evitiamo di mostrare toast ad ogni carattere digitato
   };
 
   const goToStep = (targetStep: number) => {
@@ -241,7 +235,7 @@ const MultiStepForm = () => {
     submitAttemptRef.current++;
     lastSubmitTimeRef.current = now;
 
-    if (!validatePhoneNumber(formData.phoneNumber)) {
+    if (!validatePhoneNumber(formData.phoneNumber || '')) {
       trackFormError('validation_error', 'Invalid phone number format', currentStep);
       toast({
         description: "Il numero deve avere esattamente 10 cifre",
@@ -250,8 +244,12 @@ const MultiStepForm = () => {
       return;
     }
 
-    if (!validateEmail(formData.email)) {
+    if (!validateEmail(formData.email || '')) {
       trackFormError('validation_error', 'Invalid email format', currentStep);
+      toast({
+        description: "Inserisci un indirizzo email valido (es. nome@esempio.it)",
+        duration: 3000,
+      });
       return;
     }
 
@@ -274,8 +272,8 @@ const MultiStepForm = () => {
         timestamp: new Date().toISOString(),
         source: 'Schettino Form',
         catalog_request: formData.wantsCatalog ? 'Sì' : 'No',
-        phone_formatted: formData.phoneNumber,
-        full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone_formatted: formData.phoneNumber || '',
+        full_name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim(),
         privacy_consent: formData.privacyConsent ? 'Sì' : 'No',
       };
 
