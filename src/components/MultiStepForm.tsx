@@ -132,8 +132,11 @@ const MultiStepForm = () => {
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.includes('@');
       if (isEmail) {
         // Non aggiornare il campo se contiene email
+        console.error(`❌ handleInputChange - EMAIL RILEVATA in ${field}:`, value);
+        logger.error(`❌ handleInputChange - EMAIL RILEVATA in ${field}:`, value);
         return;
       }
+      console.log(`✅ handleInputChange - ${field} valido:`, value);
     }
 
     let processedValue = value;
@@ -444,11 +447,31 @@ const MultiStepForm = () => {
         return;
       }
 
+      // LOG DETTAGLIATO PER DEBUG
+      logger.log('🔍 DEBUG PRE-PAYLOAD:');
+      logger.log('  - cleanFormData.firstName:', cleanFormData.firstName);
+      logger.log('  - cleanFormData.lastName:', cleanFormData.lastName);
+      logger.log('  - cleanFormData.email:', cleanFormData.email);
+      logger.log('  - finalCheckFirstName:', finalCheckFirstName);
+      logger.log('  - finalCheckLastName:', finalCheckLastName);
+      logger.log('  - firstNameInput DOM value:', firstNameInput?.value);
+      logger.log('  - lastNameInput DOM value:', lastNameInput?.value);
+      
       // Crea il payload con i valori FINALI e SICURI
+      // IMPORTANTE: NON usare spread di cleanFormData per firstName/lastName
+      // Usa SEMPRE i valori finali controllati
       const payload: FormSubmissionPayload = {
-        ...cleanFormData,
-        firstName: finalCheckFirstName, // Usa i valori già controllati
-        lastName: finalCheckLastName,   // Usa i valori già controllati
+        isRestaurateur: cleanFormData.isRestaurateur,
+        isInCampania: cleanFormData.isInCampania,
+        restaurantZone: cleanFormData.restaurantZone,
+        restaurantName: cleanFormData.restaurantName,
+        equipmentType: cleanFormData.equipmentType,
+        firstName: finalCheckFirstName, // SEMPRE il valore controllato, mai da cleanFormData
+        lastName: finalCheckLastName,   // SEMPRE il valore controllato, mai da cleanFormData
+        phoneNumber: cleanFormData.phoneNumber,
+        email: cleanFormData.email,
+        wantsCatalog: cleanFormData.wantsCatalog,
+        privacyConsent: cleanFormData.privacyConsent,
         timestamp: new Date().toISOString(),
         source: 'Schettino Form',
         catalog_request: cleanFormData.wantsCatalog ? 'Sì' : 'No',
@@ -458,9 +481,10 @@ const MultiStepForm = () => {
       };
 
       // Log finale per debug - verifica che firstName NON sia email
-      logger.log('✅ Payload finale creato. firstName:', payload.firstName, 'lastName:', payload.lastName);
+      logger.log('✅ Payload finale creato. firstName:', payload.firstName, 'lastName:', payload.lastName, 'email:', payload.email);
       if (payload.firstName.includes('@') || payload.lastName.includes('@')) {
         logger.error('❌❌❌ ERRORE CRITICO: Payload contiene email in firstName/lastName! BLOCCATO.');
+        logger.error('  - Payload completo:', JSON.stringify(payload, null, 2));
         toast({
           title: "Errore Critico",
           description: "Errore interno. Per favore, ricarica la pagina e riprova.",

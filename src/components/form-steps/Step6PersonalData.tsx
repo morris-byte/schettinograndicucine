@@ -142,9 +142,11 @@ export const Step6PersonalData = ({
               // Previeni inserimento di email nel campo nome - controlla anche se contiene @
               const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.includes('@');
               if (!isEmail) {
+                console.log('✅ onChange firstName - valore valido:', value);
                 onInputChange('firstName', value);
               } else {
                 // Se è un'email, pulisci immediatamente
+                console.error('❌ onChange firstName - EMAIL RILEVATA, pulizia:', value);
                 e.target.value = '';
                 onInputChange('firstName', '');
               }
