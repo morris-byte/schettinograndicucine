@@ -63,9 +63,12 @@ export const useFormAutofill = ({
     }
   }, [currentStep, formData.phoneNumber, phoneInputRef, setFormData]);
 
-  // Auto-fill form fields using browser autofill
+    // Auto-fill form fields using browser autofill
   useEffect(() => {
     const autoFillForm = () => {
+      // Solo controlla quando siamo sullo step 6 (dati personali)
+      if (currentStep !== 6) return;
+      
       const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"]');
       const autofillFields: string[] = [];
       
@@ -80,6 +83,19 @@ export const useFormAutofill = ({
           // Verifica se il valore è un'email (non deve essere inserito in nome/cognome)
           // Controlla sia formato email completo che presenza di @
           const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue) || inputValue.includes('@');
+          
+          // Se è un campo firstName/lastName ma contiene email, PULISCI il campo DOM
+          if ((name === 'firstName' || name === 'lastName') && isEmail) {
+            // Pulisci il campo DOM immediatamente
+            htmlInput.value = '';
+            // Pulisci anche lo stato
+            if (name === 'firstName') {
+              setFormData(prev => ({ ...prev, firstName: '' }));
+            } else if (name === 'lastName') {
+              setFormData(prev => ({ ...prev, lastName: '' }));
+            }
+            return; // Non inserire email nei campi nome/cognome
+          }
           
           // Controlla se è il campo firstName - DEVE essere specifico (name === 'firstName') e NON email
           if (name === 'firstName' && !isEmail) {
@@ -96,11 +112,6 @@ export const useFormAutofill = ({
               setFormData(prev => ({ ...prev, lastName: inputValue }));
               autofillFields.push('lastName');
             }
-          }
-          // Se è un campo firstName/lastName ma contiene email, NON inserirlo
-          else if ((name === 'firstName' || name === 'lastName') && isEmail) {
-            // Non fare nulla - previeni inserimento email nei campi nome/cognome
-            return;
           } else if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
             const phoneValue = htmlInput.value.trim();
             if (phoneValue) {

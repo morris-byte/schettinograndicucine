@@ -61,6 +61,7 @@ export const Step6PersonalData = ({
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
             autoComplete="given-name"
             type="text"
+            data-form-type="name"
           />
           <Input
             id="lastName"
@@ -92,6 +93,7 @@ export const Step6PersonalData = ({
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
             autoComplete="family-name"
             type="text"
+            data-form-type="name"
           />
         </div>
         <FormStepButtons

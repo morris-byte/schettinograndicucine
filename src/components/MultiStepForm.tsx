@@ -271,19 +271,75 @@ const MultiStepForm = () => {
       return;
     }
 
+    // Validazione e pulizia finale dei dati prima dell'invio
+    const cleanFormData = { ...formData };
+    
+    // Funzione per verificare se un valore è un'email
+    const isEmailValue = (value: string): boolean => {
+      if (!value || typeof value !== 'string') return false;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) || value.includes('@');
+    };
+    
+    // Pulisci firstName se contiene email
+    if (isEmailValue(cleanFormData.firstName)) {
+      logger.warn('⚠️ Email trovata in firstName, pulizia campo');
+      cleanFormData.firstName = '';
+      toast({
+        description: "Il campo Nome non può contenere un'email. Inserisci il tuo nome.",
+        duration: 4000,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Pulisci lastName se contiene email
+    if (isEmailValue(cleanFormData.lastName)) {
+      logger.warn('⚠️ Email trovata in lastName, pulizia campo');
+      cleanFormData.lastName = '';
+      toast({
+        description: "Il campo Cognome non può contenere un'email. Inserisci il tuo cognome.",
+        duration: 4000,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Validazione finale: firstName e lastName devono essere presenti e non vuoti
+    if (!cleanFormData.firstName || cleanFormData.firstName.trim() === '') {
+      toast({
+        description: "Inserisci il tuo nome",
+        duration: 3000,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (!cleanFormData.lastName || cleanFormData.lastName.trim() === '') {
+      toast({
+        description: "Inserisci il tuo cognome",
+        duration: 3000,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(true);
 
     const makeWebhookUrl = getMakeWebhookUrl();
 
     try {
       const payload: FormSubmissionPayload = {
-        ...formData,
+        ...cleanFormData,
         timestamp: new Date().toISOString(),
         source: 'Schettino Form',
-        catalog_request: formData.wantsCatalog ? 'Sì' : 'No',
-        phone_formatted: formData.phoneNumber || '',
-        full_name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim(),
-        privacy_consent: formData.privacyConsent ? 'Sì' : 'No',
+        catalog_request: cleanFormData.wantsCatalog ? 'Sì' : 'No',
+        phone_formatted: cleanFormData.phoneNumber || '',
+        full_name: `${cleanFormData.firstName.trim()} ${cleanFormData.lastName.trim()}`.trim(),
+        privacy_consent: cleanFormData.privacyConsent ? 'Sì' : 'No',
       };
 
       logger.log('Invio dati a Make:', payload);
@@ -312,7 +368,12 @@ const MultiStepForm = () => {
           const emailResponse = await fetch(getSupabaseFunctionUrl(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+              ...payload,
+              // Assicurati che firstName e lastName siano puliti anche per l'email
+              firstName: cleanFormData.firstName.trim(),
+              lastName: cleanFormData.lastName.trim(),
+            }),
           });
 
           if (emailResponse.ok) {
@@ -334,8 +395,8 @@ const MultiStepForm = () => {
           origin: { y: 0.6 },
         });
 
-        trackFormSubmission(formData);
-        trackFormCompletionTime(totalTimeSeconds, formData);
+        trackFormSubmission(cleanFormData);
+        trackFormCompletionTime(totalTimeSeconds, cleanFormData);
         hasTrackedAbandonRef.current = true;
 
         setIsSubmitted(true);
