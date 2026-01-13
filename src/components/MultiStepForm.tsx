@@ -34,6 +34,7 @@ import {
   Step10Confirmation,
   ThankYouPage,
 } from './form-steps';
+import DebugPanel from './DebugPanel';
 
 const INITIAL_FORM_DATA: FormData = {
   isRestaurateur: null,
@@ -343,29 +344,79 @@ const MultiStepForm = () => {
       let finalFirstName = cleanFormData.firstName || '';
       let finalLastName = cleanFormData.lastName || '';
       
-      // Se esiste l'input nel DOM, leggi direttamente da lì (più affidabile)
+      // CONTROLLO AGGESSIVO: Leggi direttamente dal DOM e pulisci se necessario
+      // Questo è il controllo più importante - legge direttamente dal DOM
       if (firstNameInput) {
-        const domValue = firstNameInput.value || '';
+        let domValue = firstNameInput.value || '';
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(domValue.trim()) || domValue.includes('@');
         if (isEmail) {
-          logger.warn('⚠️ Email trovata in firstName DOM, uso valore vuoto');
-          finalFirstName = '';
+          logger.error('❌❌❌ Email trovata in firstName DOM al momento del submit!');
+          logger.error('  - Valore DOM:', domValue);
+          logger.error('  - Valore stato:', cleanFormData.firstName);
+          // Pulisci IMMEDIATAMENTE
           firstNameInput.value = '';
+          finalFirstName = '';
+          // Aggiorna anche lo stato
+          setFormData(prev => ({ ...prev, firstName: '' }));
+          toast({
+            title: "Errore",
+            description: "Il campo Nome contiene un'email. Per favore, inserisci il tuo nome.",
+            duration: 5000,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return; // BLOCCA L'INVIO
         } else {
           finalFirstName = domValue.trim();
+          // Se il DOM ha un valore valido ma diverso dallo stato, usa il DOM
+          if (finalFirstName && finalFirstName !== cleanFormData.firstName) {
+            logger.warn('⚠️ Valore DOM diverso dallo stato per firstName. Uso DOM:', finalFirstName);
+          }
         }
       }
       
       if (lastNameInput) {
-        const domValue = lastNameInput.value || '';
+        let domValue = lastNameInput.value || '';
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(domValue.trim()) || domValue.includes('@');
         if (isEmail) {
-          logger.warn('⚠️ Email trovata in lastName DOM, uso valore vuoto');
-          finalLastName = '';
+          logger.error('❌❌❌ Email trovata in lastName DOM al momento del submit!');
+          logger.error('  - Valore DOM:', domValue);
+          logger.error('  - Valore stato:', cleanFormData.lastName);
+          // Pulisci IMMEDIATAMENTE
           lastNameInput.value = '';
+          finalLastName = '';
+          // Aggiorna anche lo stato
+          setFormData(prev => ({ ...prev, lastName: '' }));
+          toast({
+            title: "Errore",
+            description: "Il campo Cognome contiene un'email. Per favore, inserisci il tuo cognome.",
+            duration: 5000,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return; // BLOCCA L'INVIO
         } else {
           finalLastName = domValue.trim();
+          // Se il DOM ha un valore valido ma diverso dallo stato, usa il DOM
+          if (finalLastName && finalLastName !== cleanFormData.lastName) {
+            logger.warn('⚠️ Valore DOM diverso dallo stato per lastName. Uso DOM:', finalLastName);
+          }
         }
+      }
+      
+      // CONTROLLO FINALE DOPO LA LETTURA DAL DOM - se ancora contiene email, BLOCCA
+      if (finalFirstName.includes('@') || finalLastName.includes('@')) {
+        logger.error('❌❌❌ DOPO lettura DOM, firstName o lastName contengono ancora @!');
+        logger.error('  - finalFirstName:', finalFirstName);
+        logger.error('  - finalLastName:', finalLastName);
+        toast({
+          title: "Errore Critico",
+          description: "I campi Nome e Cognome non possono contenere email. Per favore, ricarica la pagina.",
+          duration: 8000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
       }
       
       // Validazione finale: se dopo tutto questo firstName o lastName contengono ancora email, blocca
@@ -482,12 +533,59 @@ const MultiStepForm = () => {
 
       // Log finale per debug - verifica che firstName NON sia email
       logger.log('✅ Payload finale creato. firstName:', payload.firstName, 'lastName:', payload.lastName, 'email:', payload.email);
+      
+      // CONTROLLO FINALE ASSOLUTO PRIMA DELL'INVIO
       if (payload.firstName.includes('@') || payload.lastName.includes('@')) {
         logger.error('❌❌❌ ERRORE CRITICO: Payload contiene email in firstName/lastName! BLOCCATO.');
         logger.error('  - Payload completo:', JSON.stringify(payload, null, 2));
+        logger.error('  - firstName:', payload.firstName);
+        logger.error('  - lastName:', payload.lastName);
+        logger.error('  - full_name:', payload.full_name);
+        
+        // Rileggi dal DOM un'ultima volta
+        if (firstNameInput) {
+          logger.error('  - DOM firstName value:', firstNameInput.value);
+        }
+        if (lastNameInput) {
+          logger.error('  - DOM lastName value:', lastNameInput.value);
+        }
+        
         toast({
           title: "Errore Critico",
-          description: "Errore interno. Per favore, ricarica la pagina e riprova.",
+          description: "Errore interno rilevato. Per favore, ricarica la pagina e riprova.",
+          duration: 8000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // CONTROLLO FINALE SUL JSON STRINGIFICATO
+      const payloadString = JSON.stringify(payload);
+      const firstNameInJson = payloadString.match(/"firstName"\s*:\s*"([^"]+)"/);
+      const lastNameInJson = payloadString.match(/"lastName"\s*:\s*"([^"]+)"/);
+      
+      if (firstNameInJson && firstNameInJson[1].includes('@')) {
+        logger.error('❌❌❌ ERRORE CRITICO: JSON contiene email in firstName!');
+        logger.error('  - firstName nel JSON:', firstNameInJson[1]);
+        logger.error('  - Payload string:', payloadString);
+        toast({
+          title: "Errore Critico",
+          description: "Errore interno rilevato. Per favore, ricarica la pagina e riprova.",
+          duration: 8000,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (lastNameInJson && lastNameInJson[1].includes('@')) {
+        logger.error('❌❌❌ ERRORE CRITICO: JSON contiene email in lastName!');
+        logger.error('  - lastName nel JSON:', lastNameInJson[1]);
+        logger.error('  - Payload string:', payloadString);
+        toast({
+          title: "Errore Critico",
+          description: "Errore interno rilevato. Per favore, ricarica la pagina e riprova.",
           duration: 8000,
           variant: "destructive",
         });
@@ -501,7 +599,7 @@ const MultiStepForm = () => {
       const response = await fetch(makeWebhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: payloadString,
       });
 
       logger.log('Response status:', response.status);
@@ -767,6 +865,7 @@ const MultiStepForm = () => {
 
         <CompanyServices />
       </div>
+      <DebugPanel />
     </div>
   );
 };
