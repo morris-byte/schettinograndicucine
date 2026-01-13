@@ -593,23 +593,49 @@ const MultiStepForm = () => {
         return;
       }
       
-      logger.log('Invio dati a Make:', payload);
-      logger.log('URL webhook:', makeWebhookUrl);
+      // LOG DETTAGLIATO PER DEBUG MAKE
+      logger.log('📤 INVIO A MAKE:');
+      logger.log('  - URL webhook:', makeWebhookUrl);
+      logger.log('  - Payload completo:', payload);
+      logger.log('  - Payload JSON:', payloadString);
+      logger.log('  - firstName nel payload:', payload.firstName);
+      logger.log('  - lastName nel payload:', payload.lastName);
+      logger.log('  - email nel payload:', payload.email);
 
-      const response = await fetch(makeWebhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payloadString,
-      });
+      try {
+        const response = await fetch(makeWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payloadString,
+        });
 
-      logger.log('Response status:', response.status);
-      logger.log('Response ok:', response.ok);
+        logger.log('📥 RISPOSTA DA MAKE:');
+        logger.log('  - Status:', response.status);
+        logger.log('  - OK:', response.ok);
+        logger.log('  - Status Text:', response.statusText);
 
-      if (!response.ok) {
-        trackNetworkError('webhook_failure', makeWebhookUrl, response.status, `HTTP ${response.status}`);
-      }
+        // Leggi il body della risposta per debug
+        const responseText = await response.text();
+        logger.log('  - Response body:', responseText);
 
-      if (response.ok) {
+        if (!response.ok) {
+          logger.error('❌ ERRORE INVIO A MAKE:');
+          logger.error('  - Status:', response.status);
+          logger.error('  - Status Text:', response.statusText);
+          logger.error('  - Response body:', responseText);
+          trackNetworkError('webhook_failure', makeWebhookUrl, response.status, `HTTP ${response.status}: ${responseText}`);
+          
+          toast({
+            title: "Errore invio form",
+            description: `Errore ${response.status}: ${response.statusText}. Controlla la console per dettagli.`,
+            duration: 5000,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (response.ok) {
         logger.log('Dati inviati a Make con successo.');
 
         const totalTimeSeconds = (Date.now() - formStartTimeRef.current) / 1000;
@@ -680,16 +706,23 @@ const MultiStepForm = () => {
         });
         setThankYouType('success');
         setShowThankYou(true);
-      } else {
-        throw new Error('Errore nell\'invio');
+        }
+      } catch (error) {
+        logger.error('Errore invio form:', error);
+        trackFormError('submission_error', String(error), currentStep);
+        trackNetworkError('submission_exception', makeWebhookUrl, undefined, String(error));
+        toast({
+          title: "Errore",
+          description: "Si è verificato un errore. Riprova o contattaci direttamente.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      logger.error('Errore invio form:', error);
-      trackFormError('submission_error', String(error), currentStep);
-      trackNetworkError('submission_exception', makeWebhookUrl, undefined, String(error));
+      logger.error('Errore critico nel submit:', error);
+      trackFormError('submission_critical_error', String(error), currentStep);
       toast({
-        title: "Errore",
-        description: "Si è verificato un errore. Riprova o contattaci direttamente.",
+        title: "Errore Critico",
+        description: "Si è verificato un errore critico. Per favore, ricarica la pagina.",
         variant: "destructive",
       });
     } finally {
