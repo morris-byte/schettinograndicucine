@@ -97,7 +97,7 @@ export const Step6PersonalData = ({
           <Input
             ref={firstNameInputRef}
             id="firstName"
-            name="firstName"
+            name="user_name_field_a"
             placeholder="Nome"
             value={formData.firstName}
             onChange={e => {
@@ -133,7 +133,7 @@ export const Step6PersonalData = ({
           <Input
             ref={lastNameInputRef}
             id="lastName"
-            name="lastName"
+            name="user_name_field_b"
             placeholder="Cognome"
             value={formData.lastName}
             onChange={e => {
