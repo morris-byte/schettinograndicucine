@@ -78,23 +78,29 @@ export const useFormAutofill = ({
           const inputValue = htmlInput.value.trim();
           
           // Verifica se il valore è un'email (non deve essere inserito in nome/cognome)
-          const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue);
+          // Controlla sia formato email completo che presenza di @
+          const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue) || inputValue.includes('@');
           
-          // Controlla se è il campo firstName - deve essere specifico e non email
-          if ((name === 'firstName' || (autoComplete === 'given-name' && !isEmail)) && !isEmail) {
+          // Controlla se è il campo firstName - DEVE essere specifico (name === 'firstName') e NON email
+          if (name === 'firstName' && !isEmail) {
             // Verifica che non sia già stato inserito manualmente dall'utente
             if (!formData.firstName || formData.firstName.trim() === '') {
               setFormData(prev => ({ ...prev, firstName: inputValue }));
               autofillFields.push('firstName');
             }
           } 
-          // Controlla se è il campo lastName - deve essere specifico e non email
-          else if ((name === 'lastName' || (autoComplete === 'family-name' && !isEmail)) && !isEmail) {
+          // Controlla se è il campo lastName - DEVE essere specifico (name === 'lastName') e NON email
+          else if (name === 'lastName' && !isEmail) {
             // Verifica che non sia già stato inserito manualmente dall'utente
             if (!formData.lastName || formData.lastName.trim() === '') {
               setFormData(prev => ({ ...prev, lastName: inputValue }));
               autofillFields.push('lastName');
             }
+          }
+          // Se è un campo firstName/lastName ma contiene email, NON inserirlo
+          else if ((name === 'firstName' || name === 'lastName') && isEmail) {
+            // Non fare nulla - previeni inserimento email nei campi nome/cognome
+            return;
           } else if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
             const phoneValue = htmlInput.value.trim();
             if (phoneValue) {

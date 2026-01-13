@@ -38,13 +38,26 @@ export const Step6PersonalData = ({
             value={formData.firstName}
             onChange={e => {
               const value = e.target.value;
-              // Previeni inserimento di email nel campo nome
-              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+              // Previeni inserimento di email nel campo nome - controlla anche se contiene @
+              const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.includes('@');
+              if (!isEmail) {
                 onInputChange('firstName', value);
+              } else {
+                // Se è un'email, non aggiornare il campo
+                e.target.value = formData.firstName;
               }
             }}
             onFocus={() => onFieldFocus('firstName')}
-            onBlur={() => onFieldBlur('firstName')}
+            onBlur={(e) => {
+              const value = e.target.value;
+              // Controllo finale: se contiene @ o è un'email, pulisci il campo
+              const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.includes('@');
+              if (isEmail) {
+                onInputChange('firstName', '');
+                e.target.value = '';
+              }
+              onFieldBlur('firstName');
+            }}
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
             autoComplete="given-name"
             type="text"
@@ -56,13 +69,26 @@ export const Step6PersonalData = ({
             value={formData.lastName}
             onChange={e => {
               const value = e.target.value;
-              // Previeni inserimento di email nel campo cognome
-              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+              // Previeni inserimento di email nel campo cognome - controlla anche se contiene @
+              const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.includes('@');
+              if (!isEmail) {
                 onInputChange('lastName', value);
+              } else {
+                // Se è un'email, non aggiornare il campo
+                e.target.value = formData.lastName;
               }
             }}
             onFocus={() => onFieldFocus('lastName')}
-            onBlur={() => onFieldBlur('lastName')}
+            onBlur={(e) => {
+              const value = e.target.value;
+              // Controllo finale: se contiene @ o è un'email, pulisci il campo
+              const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.includes('@');
+              if (isEmail) {
+                onInputChange('lastName', '');
+                e.target.value = '';
+              }
+              onFieldBlur('lastName');
+            }}
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
             autoComplete="family-name"
             type="text"

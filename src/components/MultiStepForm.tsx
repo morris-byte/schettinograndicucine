@@ -127,6 +127,15 @@ const MultiStepForm = () => {
       return;
     }
 
+    // Protezione aggiuntiva: previeni inserimento email nei campi nome/cognome
+    if ((field === 'firstName' || field === 'lastName') && typeof value === 'string') {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || value.includes('@');
+      if (isEmail) {
+        // Non aggiornare il campo se contiene email
+        return;
+      }
+    }
+
     let processedValue = value;
     if (field === 'phoneNumber') {
       processedValue = formatPhoneNumber(value);
