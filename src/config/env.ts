@@ -11,7 +11,7 @@ const requiredEnvVars = {
 
 const optionalEnvVars = {
   VITE_MAKE_WEBHOOK_URL: import.meta.env.VITE_MAKE_WEBHOOK_URL || 'https://hook.eu2.make.com/dbeari9w8c7p9ft1dhizsuvrd2a98gqi',
-  VITE_SUPABASE_FUNCTION_URL: import.meta.env.VITE_SUPABASE_FUNCTION_URL || 'https://laxbglhrrcbrxpnpvcob.supabase.co/functions/v1/send-test-email',
+  VITE_SUPABASE_FUNCTION_URL: import.meta.env.VITE_SUPABASE_FUNCTION_URL || 'https://zflhbbftpasyfqusoibs.supabase.co/functions/v1/send-test-email',
   VITE_GTM_CONTAINER_ID: import.meta.env.VITE_GTM_CONTAINER_ID || '',
 } as const;
 

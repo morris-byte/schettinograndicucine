@@ -6,7 +6,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Validate environment variables with fallback for production
 // TODO: Configurare queste variabili su Vercel
-const SUPABASE_URL_FINAL = SUPABASE_URL || 'https://laxbglhrrcbrxpnpvcob.supabase.co';
+const SUPABASE_URL_FINAL = SUPABASE_URL || 'https://zflhbbftpasyfqusoibs.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY_FINAL = SUPABASE_PUBLISHABLE_KEY || '';
 
 if (!SUPABASE_URL && import.meta.env.PROD) {

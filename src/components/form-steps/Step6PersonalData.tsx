@@ -36,22 +36,36 @@ export const Step6PersonalData = ({
             name="firstName"
             placeholder="Nome"
             value={formData.firstName}
-            onChange={e => onInputChange('firstName', e.target.value)}
+            onChange={e => {
+              const value = e.target.value;
+              // Previeni inserimento di email nel campo nome
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                onInputChange('firstName', value);
+              }
+            }}
             onFocus={() => onFieldFocus('firstName')}
             onBlur={() => onFieldBlur('firstName')}
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
             autoComplete="given-name"
+            type="text"
           />
           <Input
             id="lastName"
             name="lastName"
             placeholder="Cognome"
             value={formData.lastName}
-            onChange={e => onInputChange('lastName', e.target.value)}
+            onChange={e => {
+              const value = e.target.value;
+              // Previeni inserimento di email nel campo cognome
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                onInputChange('lastName', value);
+              }
+            }}
             onFocus={() => onFieldFocus('lastName')}
             onBlur={() => onFieldBlur('lastName')}
             className="bg-input border-border text-text-primary placeholder:text-text-secondary focus:ring-primary"
             autoComplete="family-name"
+            type="text"
           />
         </div>
         <FormStepButtons

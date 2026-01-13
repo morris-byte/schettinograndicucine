@@ -72,15 +72,29 @@ export const useFormAutofill = ({
       inputs.forEach((input: Element) => {
         const htmlInput = input as HTMLInputElement;
         if (htmlInput.value && htmlInput.value.trim() !== '') {
-          const name = htmlInput.getAttribute('name') || htmlInput.getAttribute('id') || htmlInput.getAttribute('placeholder')?.toLowerCase();
+          const name = htmlInput.getAttribute('name') || htmlInput.getAttribute('id') || '';
+          const placeholder = htmlInput.getAttribute('placeholder')?.toLowerCase() || '';
           const autoComplete = htmlInput.getAttribute('autocomplete') || '';
+          const inputValue = htmlInput.value.trim();
           
-          if (name?.includes('nome') || htmlInput.placeholder?.toLowerCase().includes('nome') || autoComplete === 'given-name') {
-            setFormData(prev => ({ ...prev, firstName: htmlInput.value }));
-            autofillFields.push('firstName');
-          } else if (name?.includes('cognome') || htmlInput.placeholder?.toLowerCase().includes('cognome') || autoComplete === 'family-name') {
-            setFormData(prev => ({ ...prev, lastName: htmlInput.value }));
-            autofillFields.push('lastName');
+          // Verifica se il valore è un'email (non deve essere inserito in nome/cognome)
+          const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue);
+          
+          // Controlla se è il campo firstName - deve essere specifico e non email
+          if ((name === 'firstName' || (autoComplete === 'given-name' && !isEmail)) && !isEmail) {
+            // Verifica che non sia già stato inserito manualmente dall'utente
+            if (!formData.firstName || formData.firstName.trim() === '') {
+              setFormData(prev => ({ ...prev, firstName: inputValue }));
+              autofillFields.push('firstName');
+            }
+          } 
+          // Controlla se è il campo lastName - deve essere specifico e non email
+          else if ((name === 'lastName' || (autoComplete === 'family-name' && !isEmail)) && !isEmail) {
+            // Verifica che non sia già stato inserito manualmente dall'utente
+            if (!formData.lastName || formData.lastName.trim() === '') {
+              setFormData(prev => ({ ...prev, lastName: inputValue }));
+              autofillFields.push('lastName');
+            }
           } else if (name?.includes('phone') || name?.includes('telefono') || htmlInput.type === 'tel' || autoComplete === 'tel') {
             const phoneValue = htmlInput.value.trim();
             if (phoneValue) {
