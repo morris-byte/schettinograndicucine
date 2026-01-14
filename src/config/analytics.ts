@@ -22,7 +22,9 @@ declare global {
 
 // Helper function to push events to GTM dataLayer
 const pushToDataLayer = (eventName: string, eventData?: Record<string, unknown>) => {
-  if (typeof window !== 'undefined' && window.dataLayer) {
+  if (typeof window !== 'undefined') {
+    // Ensure dataLayer exists
+    window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
       event: eventName,
       ...eventData
@@ -33,22 +35,50 @@ const pushToDataLayer = (eventName: string, eventData?: Record<string, unknown>)
 
 // Initialize GA4
 export const initGA4 = () => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    logger.log('✅ GA4 initialized with ID:', GA4_MEASUREMENT_ID);
-    logger.log('🔍 window.gtag function:', typeof window.gtag);
-    logger.log('🔍 window.dataLayer:', window.dataLayer);
+  if (typeof window !== 'undefined') {
+    // Ensure dataLayer exists
+    window.dataLayer = window.dataLayer || [];
     
-    // Test event to verify GA4 is working
-    window.gtag('event', 'test_event', {
-      test_parameter: 'GA4 is working!'
-    });
-    logger.log('🧪 Test event sent to GA4');
+    // Define gtag if not already defined (fallback if script hasn't loaded yet)
+    if (!window.gtag) {
+      window.gtag = function() {
+        window.dataLayer.push(arguments);
+      };
+    }
     
-    return true;
+    // Wait a bit for GA4 script to load if using defer
+    const checkGA4 = () => {
+      if (window.gtag && typeof window.gtag === 'function') {
+        logger.log('✅ GA4 initialized with ID:', GA4_MEASUREMENT_ID);
+        logger.log('🔍 window.gtag function:', typeof window.gtag);
+        logger.log('🔍 window.dataLayer:', window.dataLayer);
+        
+        // Test event to verify GA4 is working
+        window.gtag('event', 'test_event', {
+          test_parameter: 'GA4 is working!'
+        });
+        logger.log('🧪 Test event sent to GA4');
+        
+        return true;
+      }
+      return false;
+    };
+    
+    // Check immediately
+    if (checkGA4()) {
+      return true;
+    }
+    
+    // If not ready, wait a bit and check again (for deferred scripts)
+    setTimeout(() => {
+      if (!checkGA4()) {
+        logger.warn('⚠️ GA4 script may not have loaded yet');
+      }
+    }, 100);
+    
+    return true; // Return true anyway since we've set up the fallback
   }
-  logger.warn('⚠️ GA4 not available');
-  logger.warn('🔍 window object:', typeof window);
-  logger.warn('🔍 window.gtag:', typeof window?.gtag);
+  logger.warn('⚠️ GA4 not available - window object not found');
   return false;
 };
 
