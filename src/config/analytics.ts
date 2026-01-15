@@ -6,9 +6,12 @@ export const GA4_MEASUREMENT_ID = 'G-CWVFE2B6PJ';
 // Google Ads Conversion ID
 export const GOOGLE_ADS_ID = 'AW-17544893918';
 
-// Google Tag Manager Container ID (da configurare)
-// Esempio: 'GTM-XXXXXXX'
-export const GTM_CONTAINER_ID = import.meta.env.VITE_GTM_CONTAINER_ID || '';
+// Google Ads Conversion Label (per "Invio modulo per i lead")
+export const GOOGLE_ADS_CONVERSION_LABEL = 'V9gNCO-S6ZcbEN6rh65B';
+
+// Google Tag Manager Container ID
+// Usa l'ID hardcoded se non è disponibile come variabile d'ambiente
+export const GTM_CONTAINER_ID = import.meta.env.VITE_GTM_CONTAINER_ID || 'GTM-PM7BJ5CS';
 
 // Declare gtag function for TypeScript
 // gtag has a flexible signature: gtag(command, targetId?, config?)
@@ -21,7 +24,7 @@ declare global {
 }
 
 // Helper function to push events to GTM dataLayer
-const pushToDataLayer = (eventName: string, eventData?: Record<string, unknown>) => {
+export const pushToDataLayer = (eventName: string, eventData?: Record<string, unknown>) => {
   if (typeof window !== 'undefined') {
     // Ensure dataLayer exists
     window.dataLayer = window.dataLayer || [];
@@ -31,6 +34,32 @@ const pushToDataLayer = (eventName: string, eventData?: Record<string, unknown>)
     });
     logger.log(`✅ GTM: ${eventName} event pushed to dataLayer`, eventData);
   }
+};
+
+// Initialize Google Tag Manager
+export const initGTM = () => {
+  if (typeof window !== 'undefined') {
+    // Ensure dataLayer exists
+    window.dataLayer = window.dataLayer || [];
+    
+    // GTM should already be loaded from index.html, but verify
+    if (window.dataLayer && Array.isArray(window.dataLayer)) {
+      logger.log('✅ GTM initialized with Container ID:', GTM_CONTAINER_ID);
+      logger.log('🔍 window.dataLayer:', window.dataLayer);
+      
+      // Push a test event to verify GTM is working
+      pushToDataLayer('gtm_init', {
+        container_id: GTM_CONTAINER_ID,
+        timestamp: new Date().toISOString()
+      });
+      
+      return true;
+    }
+    logger.warn('⚠️ GTM dataLayer not available');
+    return false;
+  }
+  logger.warn('⚠️ GTM not available - window object not found');
+  return false;
 };
 
 // Initialize GA4
@@ -157,7 +186,8 @@ export const trackFormSubmission = (formData: FormSubmissionData) => {
     });
     
     // Track Google Ads conversion for form submission
-    trackGoogleAdsConversion(undefined, 1);
+    // Includi il Conversion Label per far rilevare la conversione a Google Ads
+    trackGoogleAdsConversion(GOOGLE_ADS_CONVERSION_LABEL, 1);
 
     logger.log('✅ Form submission tracked successfully');
   } else {

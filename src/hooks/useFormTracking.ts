@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import {
+  initGTM,
   initGA4,
   initFacebookPixel,
   trackUTMParameters,
@@ -29,6 +30,8 @@ export const useFormTracking = ({
 
   // Initialize tracking on mount
   useEffect(() => {
+    // Initialize in order: GTM first, then GA4, then Facebook Pixel
+    initGTM();
     initGA4();
     initFacebookPixel();
     

@@ -10,11 +10,17 @@
     <!-- End Google Tag Manager -->
     
     <!-- Google tag (gtag.js) - Initialize dataLayer BEFORE loading GA4 -->
+    <!-- Note: dataLayer is already initialized by GTM above, but we ensure it exists -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-CWVFE2B6PJ');
+      // Configure Google Analytics 4
+      gtag('config', 'G-CWVFE2B6PJ', {
+        send_page_view: true,
+        page_path: window.location.pathname
+      });
+      // Configure Google Ads
       gtag('config', 'AW-17544893918');
     </script>
     <!-- Load GA4 script with defer for better performance -->
