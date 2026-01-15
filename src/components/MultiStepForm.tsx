@@ -277,6 +277,13 @@ const MultiStepForm = () => {
     // Validazione e pulizia finale dei dati prima dell'invio
     const cleanFormData = { ...formData };
     
+    // IMPORTANTE: Invia eventi analytics PRIMA dell'invio del form
+    // Così vengono tracciati anche se c'è un errore nel backend (CORS, ecc.)
+    const totalTimeSeconds = (Date.now() - formStartTimeRef.current) / 1000;
+    trackFormSubmission(cleanFormData);
+    trackFormCompletionTime(totalTimeSeconds, cleanFormData);
+    hasTrackedAbandonRef.current = true;
+    
     // Funzione per verificare se un valore è un'email
     const isEmailValue = (value: string): boolean => {
       if (!value || typeof value !== 'string') return false;
@@ -694,9 +701,7 @@ const MultiStepForm = () => {
           origin: { y: 0.6 },
         });
 
-        trackFormSubmission(cleanFormData);
-        trackFormCompletionTime(totalTimeSeconds, cleanFormData);
-        hasTrackedAbandonRef.current = true;
+        // Eventi analytics già inviati prima dell'invio del form (vedi sopra)
 
         setIsSubmitted(true);
         toast({
