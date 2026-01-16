@@ -130,27 +130,40 @@ export const initFacebookPixel = () => {
 
 // Track Google Ads Conversion
 export const trackGoogleAdsConversion = (conversionLabel?: string, value?: number) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    logger.log('🎯 Tracking Google Ads conversion:', conversionLabel);
+  if (typeof window !== 'undefined') {
+    // Verifica che gtag sia disponibile
+    if (!window.gtag) {
+      logger.error('❌ gtag non disponibile per Google Ads conversion tracking');
+      logger.error('🔍 window.gtag:', typeof window.gtag);
+      logger.error('🔍 Verifica che lo script GA4 sia caricato in index.html');
+      return;
+    }
+    
+    const finalLabel = conversionLabel || GOOGLE_ADS_CONVERSION_LABEL;
+    logger.log('🎯 Tracking Google Ads conversion:', finalLabel);
+    logger.log('🔍 Conversion ID:', GOOGLE_ADS_ID);
+    logger.log('🔍 Conversion Label:', finalLabel);
     
     const conversionConfig: Record<string, string | number> = {
-      send_to: GOOGLE_ADS_ID
+      send_to: finalLabel ? `${GOOGLE_ADS_ID}/${finalLabel}` : GOOGLE_ADS_ID
     };
-    
-    if (conversionLabel) {
-      conversionConfig.send_to = `${GOOGLE_ADS_ID}/${conversionLabel}`;
-    }
     
     if (value !== undefined) {
       conversionConfig.value = value;
       conversionConfig.currency = 'EUR';
     }
     
-    window.gtag('event', 'conversion', conversionConfig);
+    logger.log('📤 Invio conversione Google Ads con config:', conversionConfig);
     
-    logger.log('✅ Google Ads conversion tracked successfully');
+    try {
+      window.gtag('event', 'conversion', conversionConfig);
+      logger.log('✅ Google Ads conversion tracked successfully');
+      logger.log('🔍 Verifica nella Network tab che la richiesta venga inviata a Google Ads');
+    } catch (error) {
+      logger.error('❌ Errore invio conversione Google Ads:', error);
+    }
   } else {
-    logger.warn('⚠️ gtag not available for Google Ads conversion tracking');
+    logger.warn('⚠️ Window object non disponibile per Google Ads conversion tracking');
   }
 };
 
@@ -186,7 +199,8 @@ export const trackFormSubmission = (formData: FormSubmissionData) => {
     });
     
     // Track Google Ads conversion for form submission
-    // Includi il Conversion Label per far rilevare la conversione a Google Ads
+    // IMPORTANTE: Includi SEMPRE il Conversion Label per far rilevare la conversione a Google Ads
+    logger.log('🎯 Invio conversione Google Ads con label:', GOOGLE_ADS_CONVERSION_LABEL);
     trackGoogleAdsConversion(GOOGLE_ADS_CONVERSION_LABEL, 1);
 
     logger.log('✅ Form submission tracked successfully');
